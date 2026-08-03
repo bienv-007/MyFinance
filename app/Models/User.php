@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -15,6 +16,8 @@ class User extends Authenticatable
     protected $table = 'utilisateurs';
 
     protected $primaryKey = 'id_utilisateur';
+
+    public $timestamps = false;
 
     protected $fillable = [
         'nom',
@@ -39,5 +42,15 @@ class User extends Authenticatable
     public function getAuthPassword(): string
     {
         return $this->mot_de_passe;
+    }
+
+    public function revenus(): HasMany
+    {
+        return $this->hasMany(Revenu::class, 'id_utilisateur', 'id_utilisateur');
+    }
+
+    public function depenses(): HasMany
+    {
+        return $this->hasMany(Depense::class, 'id_utilisateur', 'id_utilisateur');
     }
 }

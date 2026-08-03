@@ -21,8 +21,10 @@
 </head>
 <body class="font-sans text-slate-900">
 <div id="app" v-cloak class="min-h-screen">
+    <div v-if="mobileSidebarOpen" @click="mobileSidebarOpen=false" class="fixed inset-0 z-30 bg-slate-950/50 lg:hidden"></div>
     <div class="min-h-screen lg:flex">
-        <aside class="lg:w-72 bg-slate-950 text-slate-100 p-6 lg:min-h-screen">
+        <aside class="fixed inset-y-0 left-0 z-40 w-72 bg-slate-950 text-slate-100 p-6 transform transition-transform duration-200 lg:static lg:translate-x-0 lg:min-h-screen"
+            :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
             <div class="flex items-center gap-3 mb-10">
                 <div class="h-11 w-11 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-300">
                     <i class="fa-solid fa-wallet"></i>
@@ -48,9 +50,14 @@
         <main class="flex-1">
             <header class="sticky top-0 z-20 backdrop-blur bg-white/80 border-b border-slate-200">
                 <div class="px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                    <div>
+                    <div class="flex items-center gap-3">
+                        <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden h-11 w-11 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
                         <p class="text-sm text-slate-500">Gestion des finances personnelles</p>
                         <h2 class="text-xl font-semibold">@{{ title }}</h2>
+                        </div>
                     </div>
                     <button v-if="auth.user" @click="logout" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-700">
                         <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
@@ -70,11 +77,14 @@
                             <button @click="authMode='login'" class="px-4 py-2 rounded-xl text-sm font-medium" :class="authMode==='login'?'bg-slate-900 text-white':'bg-slate-100'">Connexion</button>
                             <button @click="authMode='register'" class="px-4 py-2 rounded-xl text-sm font-medium" :class="authMode==='register'?'bg-slate-900 text-white':'bg-slate-100'">Inscription</button>
                         </div>
+                        <div v-if="authError" class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            @{{ authError }}
+                        </div>
 
                         <form v-if="authMode==='login'" @submit.prevent="login" class="space-y-4">
                             <input v-model="loginForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border-slate-200 px-4 py-3">
                             <input v-model="loginForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                            <button class="w-full rounded-2xl bg-indigo-600 text-white py-3 font-medium">Se connecter</button>
+                            <button :disabled="busyAuth" class="w-full rounded-2xl bg-indigo-600 text-white py-3 font-medium disabled:opacity-60">Se connecter</button>
                         </form>
 
                         <form v-else @submit.prevent="register" class="space-y-4">
@@ -85,7 +95,7 @@
                             <input v-model="registerForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border-slate-200 px-4 py-3">
                             <input v-model="registerForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border-slate-200 px-4 py-3">
                             <input v-model="registerForm.mot_de_passe_confirmation" type="password" placeholder="Confirmation" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                            <button class="w-full rounded-2xl bg-slate-900 text-white py-3 font-medium">Créer le compte</button>
+                            <button :disabled="busyAuth" class="w-full rounded-2xl bg-slate-900 text-white py-3 font-medium disabled:opacity-60">Créer le compte</button>
                         </form>
                     </div>
                 </div>
@@ -209,6 +219,9 @@ Vue.createApp({
             activeTab: 'categories',
             authMode: 'login',
             auth: { user: null },
+            mobileSidebarOpen: false,
+            busyAuth: false,
+            authError: '',
             tabs: [
                 { key: 'categories', label: 'Catégories', icon: 'fa-solid fa-tags' },
                 { key: 'revenus', label: 'Revenus', icon: 'fa-solid fa-coins' },
@@ -250,20 +263,37 @@ Vue.createApp({
             await Promise.all([this.loadCategories(), this.loadRevenus(), this.loadDepenses()]);
         },
         async login() {
-            const { data } = await api.post('/auth/login', this.loginForm);
-            this.auth.user = data.data;
-            toastr.success(data.message);
-            await this.loadAll();
+            this.authError = '';
+            this.busyAuth = true;
+            try {
+                const { data } = await api.post('/auth/login', this.loginForm);
+                this.auth.user = data.data;
+                toastr.success(data.message);
+                await this.loadAll();
+            } catch (error) {
+                this.handleAuthError(error);
+            } finally {
+                this.busyAuth = false;
+            }
         },
         async register() {
-            const { data } = await api.post('/auth/register', this.registerForm);
-            this.auth.user = data.data;
-            toastr.success(data.message);
-            await this.loadAll();
+            this.authError = '';
+            this.busyAuth = true;
+            try {
+                const { data } = await api.post('/auth/register', this.registerForm);
+                this.auth.user = data.data;
+                toastr.success(data.message);
+                await this.loadAll();
+            } catch (error) {
+                this.handleAuthError(error);
+            } finally {
+                this.busyAuth = false;
+            }
         },
         async logout() {
             await api.post('/auth/logout');
             this.auth.user = null;
+            this.mobileSidebarOpen = false;
         },
         async loadCategories() {
             const { data } = await api.get('/categories', { params: { search: this.categories.search } });
@@ -306,6 +336,20 @@ Vue.createApp({
             if (!ok.isConfirmed) return;
             await api.delete(`/${resource}/${id}`);
             await this.loadAll();
+        },
+        handleAuthError(error) {
+            const status = error?.response?.status;
+            const data = error?.response?.data;
+            this.authError = data?.message || (status === 422 ? 'Veuillez vérifier les champs saisis.' : 'Une erreur est survenue.');
+            if (data?.errors) {
+                const firstKey = Object.keys(data.errors)[0];
+                if (firstKey) {
+                    this.authError = data.errors[firstKey][0];
+                }
+            }
+            if (window.toastr) {
+                toastr.error(this.authError);
+            }
         },
     }
 }).mount('#app');
