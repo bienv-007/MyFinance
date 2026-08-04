@@ -325,7 +325,8 @@ Vue.createApp({
         async loadCategories() {
             try {
                 const { data } = await api.get('/categories', { params: { search: this.categories.search } });
-                this.categories.items = data.data ?? [];
+                const payload = data?.data ?? data;
+                this.categories.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
             } catch (error) {
                 this.categories.items = [];
                 throw error;
@@ -349,7 +350,8 @@ Vue.createApp({
         editCategory(item) { this.categoryForm = { ...item }; this.activeTab = 'categories'; },
         async loadRevenus() {
             const { data } = await api.get('/revenus', { params: { search: this.revenus.search, sort: this.revenus.sort, direction: this.revenus.direction } });
-            this.revenus.items = data.data ?? [];
+            const payload = data?.data ?? data;
+            this.revenus.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
         },
         async saveRevenu() {
             try {
@@ -366,7 +368,8 @@ Vue.createApp({
         editRevenu(item) { this.revenuForm = { ...item }; this.activeTab = 'revenus'; },
         async loadDepenses() {
             const { data } = await api.get('/depenses', { params: { search: this.depenses.search, sort: this.depenses.sort, direction: this.depenses.direction } });
-            this.depenses.items = data.data ?? [];
+            const payload = data?.data ?? data;
+            this.depenses.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
         },
         async saveDepense() {
             try {
