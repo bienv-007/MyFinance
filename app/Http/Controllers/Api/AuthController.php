@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -24,7 +23,7 @@ class AuthController extends Controller
             'date_creation' => now(),
         ]);
 
-        Auth::login($user);
+        Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
         return response()->json([
@@ -37,7 +36,7 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (! Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['mot_de_passe']])) {
+        if (! Auth::guard('web')->attempt(['email' => $credentials['email'], 'password' => $credentials['mot_de_passe']])) {
             return response()->json(['message' => 'Identifiants invalides.'], 422);
         }
 
@@ -51,12 +50,12 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(['data' => new UserResource($request->user())]);
+        return response()->json(['data' => new UserResource(Auth::guard('web')->user())]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

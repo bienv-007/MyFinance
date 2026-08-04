@@ -82,19 +82,19 @@
                         </div>
 
                         <form v-if="authMode==='login'" @submit.prevent="login" class="space-y-4">
-                            <input v-model="loginForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="loginForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border-slate-200 px-4 py-3">
+                            <input v-model="loginForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="loginForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             <button :disabled="busyAuth" class="w-full rounded-2xl bg-indigo-600 text-white py-3 font-medium disabled:opacity-60">Se connecter</button>
                         </form>
 
                         <form v-else @submit.prevent="register" class="space-y-4">
                             <div class="grid sm:grid-cols-2 gap-4">
-                                <input v-model="registerForm.nom" type="text" placeholder="Nom" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                                <input v-model="registerForm.prenom" type="text" placeholder="Prénom" class="w-full rounded-2xl border-slate-200 px-4 py-3">
+                                <input v-model="registerForm.nom" type="text" placeholder="Nom" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                <input v-model="registerForm.prenom" type="text" placeholder="Prénom" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             </div>
-                            <input v-model="registerForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="registerForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="registerForm.mot_de_passe_confirmation" type="password" placeholder="Confirmation" class="w-full rounded-2xl border-slate-200 px-4 py-3">
+                            <input v-model="registerForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="registerForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="registerForm.mot_de_passe_confirmation" type="password" placeholder="Confirmation" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             <button :disabled="busyAuth" class="w-full rounded-2xl bg-slate-900 text-white py-3 font-medium disabled:opacity-60">Créer le compte</button>
                         </form>
                     </div>
@@ -111,13 +111,13 @@
                         <div class="lg:col-span-1 rounded-3xl bg-white border border-slate-200 p-6">
                             <h3 class="font-semibold text-lg mb-4">Catégorie</h3>
                             <form @submit.prevent="saveCategory" class="space-y-4">
-                                <input v-model="categoryForm.nom_categorie" type="text" placeholder="Nom de catégorie" class="w-full rounded-2xl border-slate-200 px-4 py-3">
-                                <button class="w-full rounded-2xl bg-slate-900 text-white py-3">Enregistrer</button>
+                                <input v-model="categoryForm.nom_categorie" type="text" placeholder="Nom de catégorie" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                <button type="submit" class="w-full rounded-2xl bg-slate-900 text-white py-3">Enregistrer</button>
                             </form>
                         </div>
                         <div class="lg:col-span-2 rounded-3xl bg-white border border-slate-200 p-6">
                             <div class="flex items-center justify-between gap-4 mb-4">
-                                <input v-model="categories.search" @input="debouncedLoadCategories" placeholder="Rechercher" class="w-full max-w-sm rounded-2xl border-slate-200 px-4 py-3">
+                                <input v-model="categories.search" @input="debouncedLoadCategories" placeholder="Rechercher" class="w-full max-w-sm rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm">
@@ -139,14 +139,14 @@
 
                     <div v-if="activeTab==='revenus'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
                         <div class="grid lg:grid-cols-3 gap-4">
-                            <input v-model="revenuForm.source" placeholder="Source" class="rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="revenuForm.montant" type="number" step="0.01" placeholder="Montant" class="rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="revenuForm.date_revenu" type="date" class="rounded-2xl border-slate-200 px-4 py-3">
+                            <input v-model="revenuForm.source" placeholder="Source" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="revenuForm.montant" type="number" step="0.01" placeholder="Montant" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="revenuForm.date_revenu" type="date" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                         </div>
-                        <textarea v-model="revenuForm.description" placeholder="Description" class="w-full rounded-2xl border-slate-200 px-4 py-3"></textarea>
+                        <textarea v-model="revenuForm.description" placeholder="Description" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
                         <div class="flex gap-3">
                             <button @click="saveRevenu" class="rounded-2xl bg-slate-900 text-white px-5 py-3">Enregistrer</button>
-                            <input v-model="revenus.search" @input="debouncedLoadRevenus" placeholder="Rechercher" class="rounded-2xl border-slate-200 px-4 py-3 flex-1">
+                            <input v-model="revenus.search" @input="debouncedLoadRevenus" placeholder="Rechercher" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 flex-1">
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
@@ -166,18 +166,18 @@
 
                     <div v-if="activeTab==='depenses'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
                         <div class="grid lg:grid-cols-4 gap-4">
-                            <select v-model="depenseForm.id_categorie" class="rounded-2xl border-slate-200 px-4 py-3">
+                            <select v-model="depenseForm.id_categorie" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                                 <option value="">Catégorie</option>
                                 <option v-for="item in categories.items" :key="item.id_categorie" :value="item.id_categorie">@{{ item.nom_categorie }}</option>
                             </select>
-                            <input v-model="depenseForm.montant" type="number" step="0.01" placeholder="Montant" class="rounded-2xl border-slate-200 px-4 py-3">
-                            <input v-model="depenseForm.date_depense" type="date" class="rounded-2xl border-slate-200 px-4 py-3">
+                            <input v-model="depenseForm.montant" type="number" step="0.01" placeholder="Montant" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <input v-model="depenseForm.date_depense" type="date" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             <button @click="saveDepense" class="rounded-2xl bg-slate-900 text-white px-5 py-3">Enregistrer</button>
                         </div>
-                        <textarea v-model="depenseForm.description" placeholder="Description" class="w-full rounded-2xl border-slate-200 px-4 py-3"></textarea>
+                        <textarea v-model="depenseForm.description" placeholder="Description" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
                         <div class="flex gap-3">
-                            <input v-model="depenses.search" @input="debouncedLoadDepenses" placeholder="Rechercher" class="rounded-2xl border-slate-200 px-4 py-3 flex-1">
-                            <select v-model="depenses.sort" @change="loadDepenses" class="rounded-2xl border-slate-200 px-4 py-3">
+                            <input v-model="depenses.search" @input="debouncedLoadDepenses" placeholder="Rechercher" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 flex-1">
+                            <select v-model="depenses.sort" @change="loadDepenses" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                                 <option value="date_depense">Date</option><option value="id_depense">Récent</option>
                             </select>
                         </div>
@@ -210,7 +210,15 @@
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').content;
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({
+    baseURL: '/api',
+    withCredentials: true,
+    headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+    },
+});
 const debounce = (fn, wait = 300) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; };
 
 Vue.createApp({
@@ -257,10 +265,15 @@ Vue.createApp({
                 const { data } = await api.get('/auth/me');
                 this.auth.user = data.data;
                 await this.loadAll();
-            } catch (e) {}
+            } catch (error) {
+                if (error?.response?.status !== 401) {
+                    toastr.error(this.errorMessage(error, 'Impossible de contacter le serveur.'));
+                }
+            }
         },
         async loadAll() {
-            await Promise.all([this.loadCategories(), this.loadRevenus(), this.loadDepenses()]);
+            await this.loadCategories();
+            await Promise.allSettled([this.loadRevenus(), this.loadDepenses()]);
         },
         async login() {
             this.authError = '';
@@ -268,8 +281,13 @@ Vue.createApp({
             try {
                 const { data } = await api.post('/auth/login', this.loginForm);
                 this.auth.user = data.data;
+                this.activeTab = 'categories';
                 toastr.success(data.message);
-                await this.loadAll();
+                try {
+                    await this.loadAll();
+                } catch (error) {
+                    toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
+                }
             } catch (error) {
                 this.handleAuthError(error);
             } finally {
@@ -282,8 +300,13 @@ Vue.createApp({
             try {
                 const { data } = await api.post('/auth/register', this.registerForm);
                 this.auth.user = data.data;
+                this.activeTab = 'categories';
                 toastr.success(data.message);
-                await this.loadAll();
+                try {
+                    await this.loadAll();
+                } catch (error) {
+                    toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
+                }
             } catch (error) {
                 this.handleAuthError(error);
             } finally {
@@ -291,20 +314,37 @@ Vue.createApp({
             }
         },
         async logout() {
-            await api.post('/auth/logout');
-            this.auth.user = null;
-            this.mobileSidebarOpen = false;
+            try {
+                await api.post('/auth/logout');
+                this.auth.user = null;
+                this.mobileSidebarOpen = false;
+            } catch (error) {
+                toastr.error(this.errorMessage(error, 'Impossible de fermer la session.'));
+            }
         },
         async loadCategories() {
-            const { data } = await api.get('/categories', { params: { search: this.categories.search } });
-            this.categories.items = data.data ?? [];
+            try {
+                const { data } = await api.get('/categories', { params: { search: this.categories.search } });
+                this.categories.items = data.data ?? [];
+            } catch (error) {
+                this.categories.items = [];
+                throw error;
+            }
         },
         async saveCategory() {
-            const payload = { nom_categorie: this.categoryForm.nom_categorie };
-            if (this.categoryForm.id_categorie) await api.put(`/categories/${this.categoryForm.id_categorie}`, payload);
-            else await api.post('/categories', payload);
-            this.categoryForm = { id_categorie: null, nom_categorie: '' };
-            await this.loadCategories();
+            try {
+                const payload = { nom_categorie: this.categoryForm.nom_categorie };
+                if (this.categoryForm.id_categorie) {
+                    await api.put(`/categories/${this.categoryForm.id_categorie}`, payload);
+                } else {
+                    await api.post('/categories', payload);
+                }
+                this.categoryForm = { id_categorie: null, nom_categorie: '' };
+                toastr.success('Catégorie enregistrée.');
+                await this.loadCategories();
+            } catch (error) {
+                toastr.error(this.errorMessage(error, 'Impossible d’enregistrer la catégorie.'));
+            }
         },
         editCategory(item) { this.categoryForm = { ...item }; this.activeTab = 'categories'; },
         async loadRevenus() {
@@ -312,11 +352,16 @@ Vue.createApp({
             this.revenus.items = data.data ?? [];
         },
         async saveRevenu() {
-            const payload = { ...this.revenuForm };
-            if (payload.id_revenu) await api.put(`/revenus/${payload.id_revenu}`, payload);
-            else await api.post('/revenus', payload);
-            this.revenuForm = { id_revenu: null, source: '', montant: '', date_revenu: '', description: '' };
-            await this.loadRevenus();
+            try {
+                const payload = { ...this.revenuForm };
+                if (payload.id_revenu) await api.put(`/revenus/${payload.id_revenu}`, payload);
+                else await api.post('/revenus', payload);
+                this.revenuForm = { id_revenu: null, source: '', montant: '', date_revenu: '', description: '' };
+                toastr.success('Revenu enregistré.');
+                await this.loadRevenus();
+            } catch (error) {
+                toastr.error(this.errorMessage(error, 'Impossible d’enregistrer le revenu.'));
+            }
         },
         editRevenu(item) { this.revenuForm = { ...item }; this.activeTab = 'revenus'; },
         async loadDepenses() {
@@ -324,18 +369,39 @@ Vue.createApp({
             this.depenses.items = data.data ?? [];
         },
         async saveDepense() {
-            const payload = { ...this.depenseForm };
-            if (payload.id_depense) await api.put(`/depenses/${payload.id_depense}`, payload);
-            else await api.post('/depenses', payload);
-            this.depenseForm = { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' };
-            await this.loadDepenses();
+            try {
+                const payload = { ...this.depenseForm };
+                if (payload.id_depense) await api.put(`/depenses/${payload.id_depense}`, payload);
+                else await api.post('/depenses', payload);
+                this.depenseForm = { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' };
+                toastr.success('Dépense enregistrée.');
+                await this.loadDepenses();
+            } catch (error) {
+                toastr.error(this.errorMessage(error, 'Impossible d’enregistrer la dépense.'));
+            }
         },
         editDepense(item) { this.depenseForm = { ...item }; this.activeTab = 'depenses'; },
         async destroy(resource, id) {
             const ok = await Swal.fire({ title: 'Confirmer', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Supprimer' });
             if (!ok.isConfirmed) return;
-            await api.delete(`/${resource}/${id}`);
-            await this.loadAll();
+            try {
+                await api.delete(`/${resource}/${id}`);
+                await this.loadAll();
+                toastr.success('Élément supprimé.');
+            } catch (error) {
+                toastr.error(this.errorMessage(error, 'Impossible de supprimer cet élément.'));
+            }
+        },
+        errorMessage(error, fallback) {
+            const response = error?.response;
+            const data = response?.data;
+            if (data?.errors) {
+                const firstKey = Object.keys(data.errors)[0];
+                if (firstKey && data.errors[firstKey]?.[0]) return data.errors[firstKey][0];
+            }
+            if (response?.status === 401) return 'Session expirée. Veuillez vous reconnecter.';
+            if (response?.status === 419) return 'Session expirée. Actualisez la page puis réessayez.';
+            return data?.message || fallback;
         },
         handleAuthError(error) {
             const status = error?.response?.status;
