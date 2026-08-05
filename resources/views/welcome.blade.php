@@ -154,7 +154,7 @@
                                 <thead class="text-slate-500"><tr><th class="text-left py-3">Source</th><th class="text-left py-3">Date</th><th class="text-left py-3">Montant</th><th></th></tr></thead>
                                 <tbody>
                                     <tr v-for="item in revenus.items" :key="item.id_revenu" class="border-t">
-                                        <td class="py-4">@{{ item.source }}</td><td>@{{ item.date_revenu }}</td><td>@{{ item.montant }}</td>
+                                        <td class="py-4">@{{ item.source }}</td><td>@{{ formatDate(item.date_revenu) }}</td><td>@{{ item.montant }}</td>
                                         <td class="text-right">
                                             <button @click="editRevenu(item)" class="text-indigo-600 mr-3">Modifier</button>
                                             <button @click="destroy('revenus', item.id_revenu)" class="text-rose-600">Supprimer</button>
