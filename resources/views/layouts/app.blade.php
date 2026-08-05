@@ -63,6 +63,11 @@
                     <i class="fa-solid fa-calendar-days w-5 text-center"></i>
                     <span>Prévisions de dépenses</span>
                 </a>
+                <a href="{{ route('revenu-previsions.index') }}"
+                    class="mt-1 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('revenu-previsions.*') ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <i class="fa-solid fa-arrow-trend-up w-5 text-center"></i>
+                    <span>Prévisions de revenus</span>
+                </a>
             </div>
 
             <div class="mt-auto rounded-3xl border border-white/10 bg-white/5 p-4">
@@ -118,6 +123,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="{{ asset('js/budgets.js') }}"></script>
     <script src="{{ asset('js/previsions-depenses.js') }}"></script>
+    <script src="{{ asset('js/previsions-revenus.js') }}"></script>
 
     @if (session('success'))
         <script>

@@ -165,6 +165,36 @@
                         </div>
                     </div>
 
+                    <div v-if="activeTab==='previsions-revenus'" class="space-y-6">
+                        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                            <div><p class="text-sm font-medium text-emerald-600">Anticipation financière</p><h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Prévisions de revenus</h3><p class="mt-2 text-sm text-slate-500">Planifiez vos entrées futures et suivez ce qui a déjà été perçu.</p></div>
+                            <a href="{{ url('/revenu-previsions') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-50"><i class="fa-solid fa-expand"></i>Vue détaillée</a>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="rounded-3xl border border-indigo-100 bg-indigo-50 p-5"><div class="text-sm font-medium text-indigo-600">Prévisions</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ revenuPrevisions.stats.total }}</div></div>
+                            <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Montant prévu</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(revenuPrevisions.stats.montant_total) }} <span class="text-sm text-slate-500">FC</span></div></div>
+                            <div class="rounded-3xl border border-amber-100 bg-amber-50 p-5"><div class="text-sm font-medium text-amber-600">Revenus attendus</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ revenuPrevisions.stats.attendus }}</div></div>
+                            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5"><div class="text-sm font-medium text-emerald-600">Source principale</div><div class="mt-2 truncate text-xl font-bold text-slate-950">@{{ revenuPrevisions.stats.source_principale || 'Aucune' }}</div></div>
+                        </div>
+                        <div class="grid gap-6 lg:grid-cols-3">
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <h4 class="text-lg font-semibold text-slate-950">@{{ revenuPrevisionForm.id_revenu_prevision ? 'Modifier la prévision' : 'Nouvelle prévision' }}</h4><p class="mt-1 text-sm text-slate-500">Tous les champs sont obligatoires.</p>
+                                <form @submit.prevent="saveRevenuPrevision" class="mt-5 space-y-4">
+                                    <div><label for="revenu-prevision-source" class="mb-1.5 block text-sm font-medium text-slate-700">Source prévue</label><input id="revenu-prevision-source" v-model="revenuPrevisionForm.source_previsionnelle" type="text" placeholder="Salaire, bonus..." class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"><p v-if="revenuPrevisionErrors.source_previsionnelle" class="mt-1 text-xs font-medium text-rose-600">@{{ revenuPrevisionErrors.source_previsionnelle[0] }}</p></div>
+                                    <div><label for="revenu-prevision-montant" class="mb-1.5 block text-sm font-medium text-slate-700">Montant prévu</label><input id="revenu-prevision-montant" v-model="revenuPrevisionForm.montant_previsionnel" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"><p v-if="revenuPrevisionErrors.montant_previsionnel" class="mt-1 text-xs font-medium text-rose-600">@{{ revenuPrevisionErrors.montant_previsionnel[0] }}</p></div>
+                                    <div><label for="revenu-prevision-date" class="mb-1.5 block text-sm font-medium text-slate-700">Date prévue</label><input id="revenu-prevision-date" v-model="revenuPrevisionForm.date_previsionnelle" type="date" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"><p v-if="revenuPrevisionErrors.date_previsionnelle" class="mt-1 text-xs font-medium text-rose-600">@{{ revenuPrevisionErrors.date_previsionnelle[0] }}</p></div>
+                                    <div><label for="revenu-prevision-description" class="mb-1.5 block text-sm font-medium text-slate-700">Description</label><textarea id="revenu-prevision-description" v-model="revenuPrevisionForm.description" rows="3" placeholder="Décrire ce revenu..." class="w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"></textarea><p v-if="revenuPrevisionErrors.description" class="mt-1 text-xs font-medium text-rose-600">@{{ revenuPrevisionErrors.description[0] }}</p></div>
+                                    <div class="flex gap-3"><button type="submit" class="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">@{{ revenuPrevisionForm.id_revenu_prevision ? 'Mettre à jour' : 'Créer' }}</button><button v-if="revenuPrevisionForm.id_revenu_prevision" type="button" @click="resetRevenuPrevisionForm" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500">Annuler</button></div>
+                                </form>
+                            </div>
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h4 class="text-lg font-semibold text-slate-950">Revenus planifiés</h4><p class="mt-1 text-sm text-slate-500">@{{ revenuPrevisions.stats.prochaine_source ? 'Prochain : ' + revenuPrevisions.stats.prochaine_source : 'Aucun revenu à venir' }}</p></div><div class="flex gap-3"><input v-model="revenuPrevisions.search" @input="debouncedLoadRevenuPrevisions" placeholder="Rechercher" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 sm:w-44"><select v-model="revenuPrevisions.sort" @change="loadRevenuPrevisions" class="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"><option value="date_previsionnelle">Date</option><option value="montant_previsionnel">Montant</option><option value="source_previsionnelle">Source</option></select></div></div>
+                                <div v-if="!revenuPrevisions.items.length" class="mt-5 rounded-2xl bg-slate-50 px-5 py-12 text-center text-sm text-slate-500"><i class="fa-solid fa-arrow-trend-up mb-3 text-2xl text-emerald-400"></i><p>Aucune prévision de revenu trouvée.</p></div>
+                                <div v-else class="mt-5 overflow-x-auto"><table class="w-full min-w-[900px] text-sm"><thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Source</th><th class="py-3">Montant</th><th class="py-3">Date</th><th class="py-3">Statut</th><th></th></tr></thead><tbody><tr v-for="item in revenuPrevisions.items" :key="item.id_revenu_prevision" class="border-b border-slate-100 last:border-0"><td class="py-4 font-semibold text-slate-900">@{{ item.source_previsionnelle }}</td><td class="py-4 font-semibold text-slate-700">@{{ formatMoney(item.montant_previsionnel) }} <span class="text-xs text-slate-400">FC</span></td><td class="py-4 text-slate-500">@{{ formatDate(item.date_previsionnelle) }}</td><td class="py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="revenuPrevisionStatusClass(item.statut)">@{{ item.statut }}</span></td><td class="py-4 text-right"><button v-if="item.statut !== 'Réalisée'" @click="markRevenuPrevision(item)" class="mr-3 font-semibold text-emerald-600">Perçu</button><button @click="editRevenuPrevision(item)" class="mr-3 text-indigo-600">Modifier</button><button @click="destroy('revenu-previsions', item.id_revenu_prevision)" class="text-rose-600">Supprimer</button></td></tr></tbody></table></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div v-if="activeTab==='depenses'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
                         <div class="grid lg:grid-cols-4 gap-4">
                             <select v-model="depenseForm.id_categorie" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
@@ -357,6 +387,7 @@ Vue.createApp({
             tabs: [
                 { key: 'categories', label: 'Catégories', icon: 'fa-solid fa-tags' },
                 { key: 'revenus', label: 'Revenus', icon: 'fa-solid fa-coins' },
+                { key: 'previsions-revenus', label: 'Prévisions de revenus', icon: 'fa-solid fa-arrow-trend-up' },
                 { key: 'depenses', label: 'Dépenses', icon: 'fa-solid fa-receipt' },
                 { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
                 { key: 'previsions', label: 'Prévisions', icon: 'fa-solid fa-calendar-days' },
@@ -365,6 +396,8 @@ Vue.createApp({
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
             categoryForm: { id_categorie: null, nom_categorie: '' },
             revenuForm: { id_revenu: null, source: '', montant: '', date_revenu: '', description: '' },
+            revenuPrevisionForm: { id_revenu_prevision: null, montant_previsionnel: '', source_previsionnelle: '', date_previsionnelle: '', description: '' },
+            revenuPrevisionErrors: {},
             depenseForm: { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' },
             budgetForm: { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' },
             budgetErrors: {},
@@ -372,11 +405,13 @@ Vue.createApp({
             previsionErrors: {},
             categories: { items: [], search: '' },
             revenus: { items: [], search: '', sort: 'date_revenu', direction: 'desc' },
+            revenuPrevisions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, montant_mois: 0, montant_annee: 0, attendus: 0, expirees: 0, prochaine_date: null, prochaine_source: null, source_principale: null } },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0 } },
             previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
+            debouncedLoadRevenuPrevisions: null,
             debouncedLoadDepenses: null,
             debouncedLoadBudgets: null,
             debouncedLoadPrevisions: null,
@@ -390,6 +425,7 @@ Vue.createApp({
     mounted() {
         this.debouncedLoadCategories = debounce(() => this.loadCategories(), 250);
         this.debouncedLoadRevenus = debounce(() => this.loadRevenus(), 250);
+        this.debouncedLoadRevenuPrevisions = debounce(() => this.loadRevenuPrevisions(), 250);
         this.debouncedLoadDepenses = debounce(() => this.loadDepenses(), 250);
         this.debouncedLoadBudgets = debounce(() => this.loadBudgets(), 250);
         this.debouncedLoadPrevisions = debounce(() => this.loadPrevisions(), 250);
@@ -409,7 +445,7 @@ Vue.createApp({
         },
         async loadAll() {
             await this.loadCategories();
-            await Promise.allSettled([this.loadRevenus(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions()]);
+            await Promise.allSettled([this.loadRevenus(), this.loadRevenuPrevisions(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions()]);
         },
         async login() {
             this.authError = '';
@@ -502,6 +538,84 @@ Vue.createApp({
             }
         },
         editRevenu(item) { this.revenuForm = { ...item }; this.activeTab = 'revenus'; },
+        async loadRevenuPrevisions() {
+            try {
+                const { data } = await api.get('/revenu-previsions', {
+                    params: {
+                        search: this.revenuPrevisions.search,
+                        sort: this.revenuPrevisions.sort,
+                        direction: this.revenuPrevisions.direction,
+                    },
+                });
+                const payload = data?.data ?? data;
+                this.revenuPrevisions.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+                this.revenuPrevisions.stats = data?.stats ?? this.revenuPrevisions.stats;
+            } catch (error) {
+                this.revenuPrevisions.items = [];
+                this.notify('error', this.errorMessage(error, 'Impossible de charger les prévisions de revenus.'));
+            }
+        },
+        async saveRevenuPrevision() {
+            this.revenuPrevisionErrors = {};
+            try {
+                const payload = { ...this.revenuPrevisionForm };
+                delete payload.id_revenu_prevision;
+                if (this.revenuPrevisionForm.id_revenu_prevision) {
+                    await api.put(`/revenu-previsions/${this.revenuPrevisionForm.id_revenu_prevision}`, payload);
+                    this.notify('success', 'Prévision de revenu modifiée avec succès.');
+                } else {
+                    await api.post('/revenu-previsions', payload);
+                    this.notify('success', 'Prévision de revenu créée avec succès.');
+                }
+                this.resetRevenuPrevisionForm();
+                await this.loadRevenuPrevisions();
+            } catch (error) {
+                this.revenuPrevisionErrors = error?.response?.data?.errors ?? {};
+                this.notify('error', this.errorMessage(error, 'Impossible d’enregistrer la prévision de revenu.'));
+            }
+        },
+        async markRevenuPrevision(item) {
+            const confirmation = await Swal.fire({
+                title: 'Marquer ce revenu comme perçu ?',
+                text: `Le revenu « ${item.source_previsionnelle} » sera enregistré dans vos revenus réels.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, enregistrer le revenu',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+            });
+
+            if (!confirmation.isConfirmed) return;
+
+            try {
+                await api.post(`/revenu-previsions/${item.id_revenu_prevision}/receive`);
+                this.notify('success', 'Revenu marqué comme perçu et enregistré.');
+                await this.loadAll();
+            } catch (error) {
+                this.notify('error', this.errorMessage(error, 'Impossible d’enregistrer le revenu perçu.'));
+            }
+        },
+        editRevenuPrevision(item) {
+            this.revenuPrevisionForm = {
+                id_revenu_prevision: item.id_revenu_prevision,
+                montant_previsionnel: item.montant_previsionnel,
+                source_previsionnelle: item.source_previsionnelle,
+                date_previsionnelle: item.date_previsionnelle,
+                description: item.description,
+            };
+            this.revenuPrevisionErrors = {};
+            this.activeTab = 'previsions-revenus';
+        },
+        resetRevenuPrevisionForm() {
+            this.revenuPrevisionForm = { id_revenu_prevision: null, montant_previsionnel: '', source_previsionnelle: '', date_previsionnelle: '', description: '' };
+            this.revenuPrevisionErrors = {};
+        },
+        revenuPrevisionStatusClass(status) {
+            if (status === 'Réalisée') return 'bg-emerald-50 text-emerald-700';
+            if (status === "Aujourd'hui") return 'bg-indigo-50 text-indigo-700';
+            if (status === 'À venir') return 'bg-amber-50 text-amber-700';
+            return 'bg-rose-50 text-rose-700';
+        },
         async loadDepenses() {
             const { data } = await api.get('/depenses', { params: { search: this.depenses.search, sort: this.depenses.sort, direction: this.depenses.direction } });
             const payload = data?.data ?? data;

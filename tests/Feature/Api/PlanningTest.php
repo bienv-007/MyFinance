@@ -147,6 +147,7 @@ class RevenuPrevisionTest extends TestCase
             'montant_previsionnel' => 1200,
             'source_previsionnelle' => 'Bonus',
             'date_previsionnelle' => '2026-09-15',
+            'description' => 'Bonus annuel',
         ])
             ->assertStatus(201)
             ->assertJsonPath('data.id_utilisateur', $user->id_utilisateur)
@@ -173,6 +174,7 @@ class RevenuPrevisionTest extends TestCase
             'montant_previsionnel' => 1,
             'source_previsionnelle' => 'x',
             'date_previsionnelle' => '2026-09-01',
+            'description' => 'Tentative interdite',
         ])->assertStatus(403);
         $this->deleteJson("/api/revenu-previsions/{$other->id_revenu_prevision}")->assertStatus(403);
     }
@@ -186,6 +188,7 @@ class RevenuPrevisionTest extends TestCase
             'montant_previsionnel' => 500,
             'source_previsionnelle' => 'Prime',
             'date_previsionnelle' => '2026-10-01',
+            'description' => 'Prime attendue',
         ])
             ->assertStatus(200)
             ->assertJsonPath('data.montant_previsionnel', '500.00');

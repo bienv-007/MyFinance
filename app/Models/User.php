@@ -63,4 +63,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(DepensePrevision::class, 'id_utilisateur', 'id_utilisateur');
     }
+
+    public function revenuPrevisions(): HasMany
+    {
+        return $this->hasMany(RevenuPrevision::class, 'id_utilisateur', 'id_utilisateur');
+    }
 }

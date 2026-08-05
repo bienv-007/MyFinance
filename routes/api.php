@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\DepensePrevisionController;
 use App\Http\Controllers\Api\RevenuController;
+use App\Http\Controllers\Api\RevenuPrevisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->group(function (): void {
@@ -25,6 +26,15 @@ Route::middleware('web')->group(function (): void {
             'destroy' => 'api.budgets.destroy',
         ]);
         Route::apiResource('revenus', RevenuController::class);
+        Route::apiResource('revenu-previsions', RevenuPrevisionController::class)->names([
+            'index' => 'api.revenu-previsions.index',
+            'store' => 'api.revenu-previsions.store',
+            'show' => 'api.revenu-previsions.show',
+            'update' => 'api.revenu-previsions.update',
+            'destroy' => 'api.revenu-previsions.destroy',
+        ]);
+        Route::post('revenu-previsions/{revenu_prevision}/receive', [RevenuPrevisionController::class, 'markAsReceived'])
+            ->name('api.revenu-previsions.receive');
         Route::apiResource('depenses', DepenseController::class);
         Route::apiResource('depense-previsions', DepensePrevisionController::class)->names([
             'index' => 'api.depense-previsions.index',
