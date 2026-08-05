@@ -390,7 +390,7 @@ Vue.createApp({
                 { key: 'previsions-revenus', label: 'Prévisions de revenus', icon: 'fa-solid fa-arrow-trend-up' },
                 { key: 'depenses', label: 'Dépenses', icon: 'fa-solid fa-receipt' },
                 { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
-                { key: 'previsions', label: 'Prévisions', icon: 'fa-solid fa-calendar-days' },
+                { key: 'previsions', label: 'Prévisions de dépenses', icon: 'fa-solid fa-calendar-days' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
