@@ -184,10 +184,10 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
-                                <thead class="text-slate-500"><tr><th class="text-left py-3">Catégorie</th><th class="text-left py-3">Date</th><th class="text-left py-3">Montant</th><th></th></tr></thead>
+                                <thead class="text-slate-500"><tr><th class="text-left py-3">Catégorie</th><th class="text-left py-3">Achat</th><th class="text-left py-3">Date</th><th class="text-left py-3">Montant</th><th></th></tr></thead>
                                 <tbody>
                                     <tr v-for="item in depenses.items" :key="item.id_depense" class="border-t">
-                                        <td class="py-4">@{{ item.categorie ? item.categorie.nom_categorie : '-' }}</td><td>@{{ item.date_depense }}</td><td>@{{ item.montant }}</td>
+                                        <td class="py-4">@{{ item.categorie ? item.categorie.nom_categorie : '-' }}</td><td class="max-w-xs truncate py-4 font-medium text-slate-700" :title="item.description || 'Aucun achat renseigné'">@{{ item.description || '-' }}</td><td>@{{ formatDate(item.date_depense) }}</td><td>@{{ item.montant }}</td>
                                         <td class="text-right">
                                             <button @click="editDepense(item)" class="text-indigo-600 mr-3">Modifier</button>
                                             <button @click="destroy('depenses', item.id_depense)" class="text-rose-600">Supprimer</button>
@@ -195,6 +195,36 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <div v-if="activeTab==='previsions'" class="space-y-6">
+                        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                            <div><p class="text-sm font-medium text-indigo-600">Anticipation financière</p><h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Prévisions de dépenses</h3><p class="mt-2 text-sm text-slate-500">Planifiez vos dépenses futures et anticipez vos besoins.</p></div>
+                            <a href="{{ url('/depense-previsions') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"><i class="fa-solid fa-expand"></i>Vue détaillée</a>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="rounded-3xl border border-indigo-100 bg-indigo-50 p-5"><div class="text-sm font-medium text-indigo-600">Prévisions</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ previsions.stats.total }}</div></div>
+                            <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Montant total</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(previsions.stats.montant_total) }} <span class="text-sm text-slate-500">FC</span></div></div>
+                            <div class="rounded-3xl border border-amber-100 bg-amber-50 p-5"><div class="text-sm font-medium text-amber-600">En attente</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ previsions.stats.en_attente }}</div></div>
+                            <div class="rounded-3xl border border-rose-100 bg-rose-50 p-5"><div class="text-sm font-medium text-rose-600">Dépassées</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ previsions.stats.depassees }}</div></div>
+                        </div>
+                        <div class="grid gap-6 lg:grid-cols-3">
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <h4 class="text-lg font-semibold text-slate-950">@{{ previsionForm.id_depense_prevision ? 'Modifier la prévision' : 'Nouvelle prévision' }}</h4><p class="mt-1 text-sm text-slate-500">Une description est obligatoire.</p>
+                                <form @submit.prevent="savePrevision" class="mt-5 space-y-4">
+                                    <div><label for="prevision-categorie" class="mb-1.5 block text-sm font-medium text-slate-700">Catégorie</label><select id="prevision-categorie" v-model="previsionForm.id_categorie" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"><option value="">Sélectionner</option><option v-for="item in categories.items" :key="item.id_categorie" :value="item.id_categorie">@{{ item.nom_categorie }}</option></select><p v-if="previsionErrors.id_categorie" class="mt-1 text-xs font-medium text-rose-600">@{{ previsionErrors.id_categorie[0] }}</p></div>
+                                    <div><label for="prevision-montant" class="mb-1.5 block text-sm font-medium text-slate-700">Montant prévu</label><input id="prevision-montant" v-model="previsionForm.montant_previsionnel" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"><p v-if="previsionErrors.montant_previsionnel" class="mt-1 text-xs font-medium text-rose-600">@{{ previsionErrors.montant_previsionnel[0] }}</p></div>
+                                    <div><label for="prevision-date" class="mb-1.5 block text-sm font-medium text-slate-700">Date prévue</label><input id="prevision-date" v-model="previsionForm.date_previsionnelle" type="date" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"><p v-if="previsionErrors.date_previsionnelle" class="mt-1 text-xs font-medium text-rose-600">@{{ previsionErrors.date_previsionnelle[0] }}</p></div>
+                                    <div><label for="prevision-description" class="mb-1.5 block text-sm font-medium text-slate-700">Description</label><textarea id="prevision-description" v-model="previsionForm.description" rows="3" placeholder="Décrire la dépense..." class="w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea><p v-if="previsionErrors.description" class="mt-1 text-xs font-medium text-rose-600">@{{ previsionErrors.description[0] }}</p></div>
+                                    <div class="flex gap-3"><button type="submit" class="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">@{{ previsionForm.id_depense_prevision ? 'Mettre à jour' : 'Créer' }}</button><button v-if="previsionForm.id_depense_prevision" type="button" @click="resetPrevisionForm" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500">Annuler</button></div>
+                                </form>
+                            </div>
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h4 class="text-lg font-semibold text-slate-950">Dépenses planifiées</h4><p class="mt-1 text-sm text-slate-500">@{{ previsions.stats.categorie_frequente ? 'Catégorie principale : ' + previsions.stats.categorie_frequente : 'Aucune catégorie principale' }}</p></div><div class="flex gap-3"><input v-model="previsions.search" @input="debouncedLoadPrevisions" placeholder="Rechercher" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44"><select v-model="previsions.sort" @change="loadPrevisions" class="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"><option value="date_previsionnelle">Date</option><option value="montant_previsionnel">Montant</option><option value="id_categorie">Catégorie</option></select></div></div>
+                                <div v-if="!previsions.items.length" class="mt-5 rounded-2xl bg-slate-50 px-5 py-12 text-center text-sm text-slate-500"><i class="fa-solid fa-calendar-plus mb-3 text-2xl text-indigo-400"></i><p>Aucune prévision trouvée.</p></div>
+                                <div v-else class="mt-5 overflow-x-auto"><table class="w-full min-w-[820px] text-sm"><thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Catégorie</th><th class="py-3">Montant</th><th class="py-3">Date</th><th class="py-3">Statut</th><th></th></tr></thead><tbody><tr v-for="item in previsions.items" :key="item.id_depense_prevision" class="border-b border-slate-100 last:border-0"><td class="py-4 font-semibold text-slate-900">@{{ item.categorie ? item.categorie.nom_categorie : '-' }}</td><td class="py-4 font-semibold text-slate-700">@{{ formatMoney(item.montant_previsionnel) }} <span class="text-xs text-slate-400">FC</span></td><td class="py-4 text-slate-500">@{{ formatDate(item.date_previsionnelle) }}</td><td class="py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="previsionStatusClass(item.statut)">@{{ item.statut }}</span></td><td class="py-4 text-right"><button @click="validatePrevision(item)" class="mr-3 font-semibold text-emerald-600">Valider</button><button @click="editPrevision(item)" class="mr-3 text-indigo-600">Modifier</button><button @click="destroy('depense-previsions', item.id_depense_prevision)" class="text-rose-600">Supprimer</button></td></tr></tbody></table></div>
+                            </div>
                         </div>
                     </div>
 
@@ -329,6 +359,7 @@ Vue.createApp({
                 { key: 'revenus', label: 'Revenus', icon: 'fa-solid fa-coins' },
                 { key: 'depenses', label: 'Dépenses', icon: 'fa-solid fa-receipt' },
                 { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
+                { key: 'previsions', label: 'Prévisions', icon: 'fa-solid fa-calendar-days' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
@@ -337,14 +368,18 @@ Vue.createApp({
             depenseForm: { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' },
             budgetForm: { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' },
             budgetErrors: {},
+            previsionForm: { id_depense_prevision: null, id_categorie: '', montant_previsionnel: '', date_previsionnelle: '', description: '' },
+            previsionErrors: {},
             categories: { items: [], search: '' },
             revenus: { items: [], search: '', sort: 'date_revenu', direction: 'desc' },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0 } },
+            previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
             debouncedLoadDepenses: null,
             debouncedLoadBudgets: null,
+            debouncedLoadPrevisions: null,
         };
     },
     computed: {
@@ -357,6 +392,7 @@ Vue.createApp({
         this.debouncedLoadRevenus = debounce(() => this.loadRevenus(), 250);
         this.debouncedLoadDepenses = debounce(() => this.loadDepenses(), 250);
         this.debouncedLoadBudgets = debounce(() => this.loadBudgets(), 250);
+        this.debouncedLoadPrevisions = debounce(() => this.loadPrevisions(), 250);
         this.bootstrap();
     },
     methods: {
@@ -373,7 +409,7 @@ Vue.createApp({
         },
         async loadAll() {
             await this.loadCategories();
-            await Promise.allSettled([this.loadRevenus(), this.loadDepenses(), this.loadBudgets()]);
+            await Promise.allSettled([this.loadRevenus(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions()]);
         },
         async login() {
             this.authError = '';
@@ -500,6 +536,83 @@ Vue.createApp({
                 this.budgets.items = [];
                 this.notify('error', this.errorMessage(error, 'Impossible de charger les budgets.'));
             }
+        },
+        async loadPrevisions() {
+            try {
+                const { data } = await api.get('/depense-previsions', {
+                    params: {
+                        search: this.previsions.search,
+                        sort: this.previsions.sort,
+                        direction: this.previsions.direction,
+                    },
+                });
+                const payload = data?.data ?? data;
+                this.previsions.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+                this.previsions.stats = data?.stats ?? this.previsions.stats;
+            } catch (error) {
+                this.previsions.items = [];
+                this.notify('error', this.errorMessage(error, 'Impossible de charger les prévisions.'));
+            }
+        },
+        async savePrevision() {
+            this.previsionErrors = {};
+            try {
+                const payload = { ...this.previsionForm };
+                delete payload.id_depense_prevision;
+                if (this.previsionForm.id_depense_prevision) {
+                    await api.put(`/depense-previsions/${this.previsionForm.id_depense_prevision}`, payload);
+                    this.notify('success', 'Prévision modifiée avec succès.');
+                } else {
+                    await api.post('/depense-previsions', payload);
+                    this.notify('success', 'Prévision créée avec succès.');
+                }
+                this.resetPrevisionForm();
+                await this.loadPrevisions();
+            } catch (error) {
+                this.previsionErrors = error?.response?.data?.errors ?? {};
+                this.notify('error', this.errorMessage(error, 'Impossible d’enregistrer la prévision.'));
+            }
+        },
+        async validatePrevision(item) {
+            const confirmation = await Swal.fire({
+                title: 'Valider cette prévision ?',
+                text: `Une dépense sera enregistrée pour « ${item.description} » et la prévision sera clôturée.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, enregistrer la dépense',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+            });
+
+            if (!confirmation.isConfirmed) return;
+
+            try {
+                await api.post(`/depense-previsions/${item.id_depense_prevision}/validate`);
+                this.notify('success', 'Prévision validée et dépense enregistrée.');
+                await this.loadAll();
+            } catch (error) {
+                this.notify('error', this.errorMessage(error, 'Impossible de valider la prévision.'));
+            }
+        },
+        editPrevision(item) {
+            this.previsionForm = {
+                id_depense_prevision: item.id_depense_prevision,
+                id_categorie: item.id_categorie,
+                montant_previsionnel: item.montant_previsionnel,
+                date_previsionnelle: item.date_previsionnelle,
+                description: item.description,
+            };
+            this.previsionErrors = {};
+            this.activeTab = 'previsions';
+        },
+        resetPrevisionForm() {
+            this.previsionForm = { id_depense_prevision: null, id_categorie: '', montant_previsionnel: '', date_previsionnelle: '', description: '' };
+            this.previsionErrors = {};
+        },
+        previsionStatusClass(status) {
+            if (status === "Aujourd'hui") return 'bg-indigo-50 text-indigo-700';
+            if (status === 'À venir') return 'bg-amber-50 text-amber-700';
+            return 'bg-rose-50 text-rose-700';
         },
         async saveBudget() {
             this.budgetErrors = {};

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DepenseController;
+use App\Http\Controllers\Api\DepensePrevisionController;
 use App\Http\Controllers\Api\RevenuController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,5 +26,14 @@ Route::middleware('web')->group(function (): void {
         ]);
         Route::apiResource('revenus', RevenuController::class);
         Route::apiResource('depenses', DepenseController::class);
+        Route::apiResource('depense-previsions', DepensePrevisionController::class)->names([
+            'index' => 'api.depense-previsions.index',
+            'store' => 'api.depense-previsions.store',
+            'show' => 'api.depense-previsions.show',
+            'update' => 'api.depense-previsions.update',
+            'destroy' => 'api.depense-previsions.destroy',
+        ]);
+        Route::post('depense-previsions/{depense_prevision}/validate', [DepensePrevisionController::class, 'validate'])
+            ->name('api.depense-previsions.validate');
     });
 });

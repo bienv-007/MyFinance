@@ -29,4 +29,9 @@ class Categorie extends Model
     {
         return $this->hasMany(Depense::class, 'id_categorie', 'id_categorie');
     }
+
+    public function depensePrevisions(): HasMany
+    {
+        return $this->hasMany(DepensePrevision::class, 'id_categorie', 'id_categorie');
+    }
 }

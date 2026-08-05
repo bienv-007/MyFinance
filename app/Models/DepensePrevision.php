@@ -43,4 +43,34 @@ class DepensePrevision extends Model
     {
         return $this->belongsTo(Categorie::class, 'id_categorie', 'id_categorie');
     }
+
+    public function getIdPrevisionAttribute(): mixed
+    {
+        return $this->id_depense_prevision;
+    }
+
+    public function getMontantPrevisionAttribute(): mixed
+    {
+        return $this->montant_previsionnel;
+    }
+
+    public function getDatePrevisionAttribute(): mixed
+    {
+        return $this->date_previsionnelle;
+    }
+
+    public function getStatutAttribute(): string
+    {
+        $today = today();
+
+        if ($this->date_previsionnelle->isSameDay($today)) {
+            return "Aujourd'hui";
+        }
+
+        if ($this->date_previsionnelle->isAfter($today)) {
+            return 'À venir';
+        }
+
+        return 'Dépassée';
+    }
 }
