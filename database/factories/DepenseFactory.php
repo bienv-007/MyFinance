@@ -1,0 +1,30 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Categorie;
+use App\Models\Depense;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Depense>
+ */
+class DepenseFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'id_utilisateur' => User::factory(),
+            'id_categorie' => Categorie::factory(),
+            'montant' => fake()->randomFloat(2, 1, 5000),
+            'date_depense' => fake()->date(),
+            'description' => fake()->optional()->sentence(),
+        ];
+    }
+}

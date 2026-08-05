@@ -101,10 +101,11 @@
                 </div>
 
                 <div v-else class="space-y-8">
-                    <div class="grid md:grid-cols-3 gap-4">
+                    <div class="grid md:grid-cols-4 gap-4">
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Catégories</div><div class="mt-2 text-3xl font-semibold">@{{ categories.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Revenus</div><div class="mt-2 text-3xl font-semibold">@{{ revenus.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Dépenses</div><div class="mt-2 text-3xl font-semibold">@{{ depenses.items.length }}</div></div>
+                        <div class="rounded-3xl bg-indigo-600 p-5 text-white shadow-lg shadow-indigo-600/20"><div class="text-sm text-indigo-100">Budgets</div><div class="mt-2 text-3xl font-semibold">@{{ budgets.stats.total }}</div><div class="mt-1 text-xs text-indigo-100">@{{ budgets.stats.actifs }} actif(s)</div></div>
                     </div>
 
                     <div v-if="activeTab==='categories'" class="grid lg:grid-cols-3 gap-6">
@@ -196,6 +197,98 @@
                             </table>
                         </div>
                     </div>
+
+                    <div v-if="activeTab==='budgets'" class="space-y-6">
+                        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                            <div>
+                                <p class="text-sm font-medium text-indigo-600">Planification financière</p>
+                                <h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Mes budgets</h3>
+                                <p class="mt-2 text-sm text-slate-500">Créez une enveloppe, suivez sa période et gardez le contrôle de vos objectifs.</p>
+                            </div>
+                            <a href="{{ url('/budgets') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50">
+                                <i class="fa-solid fa-expand"></i>
+                                Vue détaillée
+                            </a>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <div class="rounded-3xl border border-indigo-100 bg-indigo-50 p-5"><div class="text-sm font-medium text-indigo-600">Total budgets</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.total }}</div></div>
+                            <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5"><div class="text-sm font-medium text-emerald-600">Budget actif</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.actifs }}</div></div>
+                            <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Montant budgété</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_total) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
+                        </div>
+
+                        <div class="grid gap-6 lg:grid-cols-3">
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                                <div class="mb-5">
+                                    <h4 class="text-lg font-semibold text-slate-950">@{{ budgetForm.id_budget ? 'Modifier le budget' : 'Nouveau budget' }}</h4>
+                                    <p class="mt-1 text-sm text-slate-500">Les champs sont contrôlés avant enregistrement.</p>
+                                </div>
+                                <form @submit.prevent="saveBudget" class="space-y-4">
+                                    <div>
+                                        <label for="budget-periode" class="mb-1.5 block text-sm font-medium text-slate-700">Période</label>
+                                        <input id="budget-periode" v-model="budgetForm.periode" type="text" placeholder="Ex. Août 2026" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                        <p v-if="budgetErrors.periode" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.periode[0] }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="budget-montant" class="mb-1.5 block text-sm font-medium text-slate-700">Montant total</label>
+                                        <input id="budget-montant" v-model="budgetForm.montant_total" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                        <p v-if="budgetErrors.montant_total" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.montant_total[0] }}</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label for="budget-debut" class="mb-1.5 block text-sm font-medium text-slate-700">Début</label>
+                                            <input id="budget-debut" v-model="budgetForm.date_debut" type="date" class="w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                            <p v-if="budgetErrors.date_debut" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.date_debut[0] }}</p>
+                                        </div>
+                                        <div>
+                                            <label for="budget-fin" class="mb-1.5 block text-sm font-medium text-slate-700">Fin</label>
+                                            <input id="budget-fin" v-model="budgetForm.date_fin" type="date" :min="budgetForm.date_debut || null" class="w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                            <p v-if="budgetErrors.date_fin" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.date_fin[0] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3 pt-2">
+                                        <button type="submit" class="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">@{{ budgetForm.id_budget ? 'Mettre à jour' : 'Créer le budget' }}</button>
+                                        <button v-if="budgetForm.id_budget" type="button" @click="resetBudgetForm" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50">Annuler</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-slate-950">Budgets enregistrés</h4>
+                                        <p class="mt-1 text-sm text-slate-500">@{{ budgets.stats.total }} budget(s) au total</p>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <input v-model="budgets.search" @input="debouncedLoadBudgets" placeholder="Rechercher" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44">
+                                        <select v-model="budgets.sort" @change="loadBudgets" class="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                            <option value="date_debut">Date</option><option value="periode">Période</option><option value="montant_total">Montant</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div v-if="!budgets.items.length" class="rounded-2xl bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">
+                                    <i class="fa-solid fa-chart-pie mb-3 text-2xl text-indigo-400"></i>
+                                    <p>Aucun budget ne correspond à votre recherche.</p>
+                                </div>
+
+                                <div v-else class="mt-5 overflow-x-auto">
+                                    <table class="w-full min-w-[680px] text-sm">
+                                        <thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Période</th><th class="py-3">Montant</th><th class="py-3">Dates</th><th class="py-3">Statut</th><th></th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="item in budgets.items" :key="item.id_budget" class="border-b border-slate-100 last:border-0">
+                                                <td class="py-4 font-semibold text-slate-900">@{{ item.periode }}</td>
+                                                <td class="py-4 font-semibold text-slate-700">@{{ formatMoney(item.montant_total) }} <span class="text-xs text-slate-400">FC</span></td>
+                                                <td class="py-4 text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</td>
+                                                <td class="py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span></td>
+                                                <td class="py-4 text-right"><button @click="editBudget(item)" class="mr-3 text-indigo-600">Modifier</button><button @click="destroy('budgets', item.id_budget)" class="text-rose-600">Supprimer</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -204,6 +297,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -234,18 +328,23 @@ Vue.createApp({
                 { key: 'categories', label: 'Catégories', icon: 'fa-solid fa-tags' },
                 { key: 'revenus', label: 'Revenus', icon: 'fa-solid fa-coins' },
                 { key: 'depenses', label: 'Dépenses', icon: 'fa-solid fa-receipt' },
+                { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
             categoryForm: { id_categorie: null, nom_categorie: '' },
             revenuForm: { id_revenu: null, source: '', montant: '', date_revenu: '', description: '' },
             depenseForm: { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' },
+            budgetForm: { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' },
+            budgetErrors: {},
             categories: { items: [], search: '' },
             revenus: { items: [], search: '', sort: 'date_revenu', direction: 'desc' },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
+            budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0 } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
             debouncedLoadDepenses: null,
+            debouncedLoadBudgets: null,
         };
     },
     computed: {
@@ -257,6 +356,7 @@ Vue.createApp({
         this.debouncedLoadCategories = debounce(() => this.loadCategories(), 250);
         this.debouncedLoadRevenus = debounce(() => this.loadRevenus(), 250);
         this.debouncedLoadDepenses = debounce(() => this.loadDepenses(), 250);
+        this.debouncedLoadBudgets = debounce(() => this.loadBudgets(), 250);
         this.bootstrap();
     },
     methods: {
@@ -273,7 +373,7 @@ Vue.createApp({
         },
         async loadAll() {
             await this.loadCategories();
-            await Promise.allSettled([this.loadRevenus(), this.loadDepenses()]);
+            await Promise.allSettled([this.loadRevenus(), this.loadDepenses(), this.loadBudgets()]);
         },
         async login() {
             this.authError = '';
@@ -384,6 +484,70 @@ Vue.createApp({
             }
         },
         editDepense(item) { this.depenseForm = { ...item }; this.activeTab = 'depenses'; },
+        async loadBudgets() {
+            try {
+                const { data } = await api.get('/budgets', {
+                    params: {
+                        search: this.budgets.search,
+                        sort: this.budgets.sort,
+                        direction: this.budgets.direction,
+                    },
+                });
+                const payload = data?.data ?? data;
+                this.budgets.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+                this.budgets.stats = data?.stats ?? { total: 0, actifs: 0, montant_total: 0 };
+            } catch (error) {
+                this.budgets.items = [];
+                this.notify('error', this.errorMessage(error, 'Impossible de charger les budgets.'));
+            }
+        },
+        async saveBudget() {
+            this.budgetErrors = {};
+            try {
+                const payload = { ...this.budgetForm };
+                delete payload.id_budget;
+                if (this.budgetForm.id_budget) {
+                    await api.put(`/budgets/${this.budgetForm.id_budget}`, payload);
+                    this.notify('success', 'Budget modifié avec succès.');
+                } else {
+                    await api.post('/budgets', payload);
+                    this.notify('success', 'Budget créé avec succès.');
+                }
+                this.resetBudgetForm();
+                await this.loadBudgets();
+            } catch (error) {
+                this.budgetErrors = error?.response?.data?.errors ?? {};
+                this.notify('error', this.errorMessage(error, 'Impossible d’enregistrer le budget.'));
+            }
+        },
+        editBudget(item) {
+            this.budgetForm = { ...item };
+            this.budgetErrors = {};
+            this.activeTab = 'budgets';
+        },
+        resetBudgetForm() {
+            this.budgetForm = { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' };
+            this.budgetErrors = {};
+        },
+        formatMoney(value) {
+            return Number(value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        formatDate(value) {
+            if (!value) return '-';
+
+            const [year, month, day] = value.substring(0, 10).split('-');
+            return `${day}/${month}/${year}`;
+        },
+        statusClass(status) {
+            if (status === 'En cours') return 'bg-emerald-50 text-emerald-700';
+            if (status === 'À venir') return 'bg-amber-50 text-amber-700';
+            return 'bg-slate-100 text-slate-600';
+        },
+        notify(type, message) {
+            if (window.toastr && typeof window.toastr[type] === 'function') {
+                window.toastr[type](message);
+            }
+        },
         async destroy(resource, id) {
             const ok = await Swal.fire({ title: 'Confirmer', text: 'Action irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Supprimer' });
             if (!ok.isConfirmed) return;

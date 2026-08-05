@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -52,5 +52,10 @@ class User extends Authenticatable
     public function depenses(): HasMany
     {
         return $this->hasMany(Depense::class, 'id_utilisateur', 'id_utilisateur');
+    }
+
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class, 'id_utilisateur', 'id_utilisateur');
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\RevenuController;
@@ -15,6 +16,13 @@ Route::middleware('web')->group(function (): void {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
         Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('budgets', BudgetController::class)->names([
+            'index' => 'api.budgets.index',
+            'store' => 'api.budgets.store',
+            'show' => 'api.budgets.show',
+            'update' => 'api.budgets.update',
+            'destroy' => 'api.budgets.destroy',
+        ]);
         Route::apiResource('revenus', RevenuController::class);
         Route::apiResource('depenses', DepenseController::class);
     });
