@@ -30,8 +30,8 @@
                     <i class="fa-solid fa-wallet"></i>
                 </div>
                 <div>
-                    <div class="text-xs uppercase tracking-[0.3em] text-slate-400">Personal Finance</div>
-                    <h1 class="font-semibold text-lg">Finance Control</h1>
+                    {{-- <div class="text-xs uppercase tracking-[0.3em] text-slate-400">Finance personnelles</div> --}}
+                    <h1 class="font-semibold text-lg">MyFinance</h1>
                 </div>
             </div>
             <nav class="space-y-2">
@@ -55,7 +55,7 @@
                             <i class="fa-solid fa-bars"></i>
                         </button>
                         <div>
-                        <p class="text-sm text-slate-500">Gestion des finances personnelles</p>
+                        <p class="text-sm text-slate-500">Finances personnelles</p>
                         <h2 class="text-xl font-semibold">@{{ title }}</h2>
                         </div>
                     </div>
