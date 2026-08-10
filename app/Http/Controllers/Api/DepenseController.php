@@ -77,6 +77,12 @@ class DepenseController extends Controller
             ->whereDate('date_fin', '>=', $data['date_depense'])
             ->get();
 
+        if ($budgets->isEmpty()) {
+            throw ValidationException::withMessages([
+                'date_depense' => 'Aucun budget disponible pour la date de cette dépense.',
+            ]);
+        }
+
         foreach ($budgets as $budget) {
             $spent = Depense::query()
                 ->where('id_utilisateur', $request->user()->id_utilisateur)

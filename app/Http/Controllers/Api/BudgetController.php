@@ -10,6 +10,7 @@ use App\Models\Depense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class BudgetController extends Controller
 {
@@ -61,6 +62,8 @@ class BudgetController extends Controller
 
     public function store(BudgetRequest $request): JsonResponse
     {
+        $this->ensureNoOverlappingBudget($request);
+
         $budget = Budget::create([
             ...$request->validated(),
             'id_utilisateur' => $request->user()->id_utilisateur,
@@ -79,6 +82,7 @@ class BudgetController extends Controller
     public function update(BudgetRequest $request, Budget $budget): JsonResponse
     {
         abort_unless($budget->id_utilisateur === $request->user()->id_utilisateur, 403);
+        $this->ensureNoOverlappingBudget($request, $budget);
         $budget->update($request->validated());
 
         return response()->json(['data' => new BudgetResource($budget)]);
@@ -90,5 +94,22 @@ class BudgetController extends Controller
         $budget->delete();
 
         return response()->json(['message' => 'Budget supprimé.']);
+    }
+
+    private function ensureNoOverlappingBudget(BudgetRequest $request, ?Budget $current = null): void
+    {
+        $data = $request->validated();
+        $overlap = Budget::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->whereDate('date_debut', '<=', $data['date_fin'])
+            ->whereDate('date_fin', '>=', $data['date_debut'])
+            ->when($current, fn ($query) => $query->where('id_budget', '!=', $current->id_budget))
+            ->exists();
+
+        if ($overlap) {
+            throw ValidationException::withMessages([
+                'date_debut' => 'Cette période chevauche déjà un autre budget.',
+            ]);
+        }
     }
 }
