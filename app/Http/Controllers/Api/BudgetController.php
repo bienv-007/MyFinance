@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BudgetRequest;
 use App\Http\Resources\BudgetResource;
 use App\Models\Budget;
+use App\Models\Depense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -37,12 +38,23 @@ class BudgetController extends Controller
                 [$today, $today],
             )
             ->first();
+        $budgets = Budget::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->get();
+        $montantDepense = $budgets->sum(fn (Budget $budget): float => (float) Depense::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->whereBetween('date_depense', [$budget->date_debut, $budget->date_fin])
+            ->sum('montant'));
+        $montantInitial = (float) ($stats?->montant_total ?? 0);
 
         return BudgetResource::collection($query->paginate(10))->additional([
             'stats' => [
                 'total' => (int) ($stats?->total_budgets ?? 0),
                 'actifs' => (int) ($stats?->budgets_actifs ?? 0),
                 'montant_total' => (float) ($stats?->montant_total ?? 0),
+                'montant_initial' => $montantInitial,
+                'montant_depense' => $montantDepense,
+                'montant_restant' => max(0, $montantInitial - $montantDepense),
             ],
         ]);
     }

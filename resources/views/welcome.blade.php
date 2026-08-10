@@ -17,13 +17,15 @@
     <style>
         [v-cloak]{display:none}
         body{background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%)}
+        .loading-bar{background:#2f81f7;box-shadow:0 0 10px rgba(47,129,247,.75),0 0 4px rgba(47,129,247,.9);transition:width .8s cubic-bezier(.22,1,.36,1)}
     </style>
 </head>
 <body class="font-sans text-slate-900">
 <div id="app" v-cloak class="min-h-screen">
-    <div v-if="mobileSidebarOpen" @click="mobileSidebarOpen=false" class="fixed inset-0 z-30 bg-slate-950/50 lg:hidden"></div>
+    <div v-if="isLoading" class="loading-bar fixed left-0 top-0 z-[100] h-0.5" :style="{ width: loadingProgress + '%' }"></div>
+    <div v-if="auth.user && mobileSidebarOpen" @click="mobileSidebarOpen=false" class="fixed inset-0 z-30 bg-slate-950/50 lg:hidden"></div>
     <div class="min-h-screen lg:flex">
-        <aside class="fixed inset-y-0 left-0 z-40 w-72 bg-slate-950 text-slate-100 p-6 transform transition-transform duration-200 lg:static lg:translate-x-0 lg:min-h-screen"
+        <aside v-if="auth.user" class="fixed inset-y-0 left-0 z-40 w-72 bg-slate-950 text-slate-100 p-6 transform transition-transform duration-200 lg:static lg:translate-x-0 lg:min-h-screen"
             :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
             <div class="flex items-center gap-3 mb-10">
                 <div class="h-11 w-11 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-300">
@@ -48,10 +50,10 @@
         </aside>
 
         <main class="flex-1">
-            <header class="sticky top-0 z-20 backdrop-blur bg-white/80 border-b border-slate-200">
+            <header class="sticky top-0 z-20 bg-white border-b border-slate-200">
                 <div class="px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden h-11 w-11 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700">
+                        <button v-if="auth.user" @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden h-11 w-11 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700">
                             <i class="fa-solid fa-bars"></i>
                         </button>
                         <div>
@@ -271,10 +273,12 @@
                             </a>
                         </div>
 
-                        <div class="grid gap-4 sm:grid-cols-3">
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                             <div class="rounded-3xl border border-indigo-100 bg-indigo-50 p-5"><div class="text-sm font-medium text-indigo-600">Total budgets</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.total }}</div></div>
                             <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5"><div class="text-sm font-medium text-emerald-600">Budget actif</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.actifs }}</div></div>
-                            <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Montant budgété</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_total) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
+                            <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Budget initial</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_initial) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
+                            <div class="rounded-3xl border border-rose-100 bg-rose-50 p-5"><div class="text-sm font-medium text-rose-600">Dépensé</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_depense) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
+                            <div class="rounded-3xl border border-teal-100 bg-teal-50 p-5"><div class="text-sm font-medium text-teal-600">Budget restant</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_restant) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
                         </div>
 
                         <div class="grid gap-6 lg:grid-cols-3">
@@ -373,6 +377,20 @@ const api = axios.create({
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
     },
 });
+api.interceptors.request.use((config) => {
+    window.dispatchEvent(new Event('finance-loading-start'));
+    return config;
+});
+api.interceptors.response.use(
+    (response) => {
+        window.dispatchEvent(new Event('finance-loading-end'));
+        return response;
+    },
+    (error) => {
+        window.dispatchEvent(new Event('finance-loading-end'));
+        return Promise.reject(error);
+    },
+);
 const debounce = (fn, wait = 300) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; };
 
 Vue.createApp({
@@ -382,6 +400,9 @@ Vue.createApp({
             authMode: 'login',
             auth: { user: null },
             mobileSidebarOpen: false,
+            isLoading: false,
+            loadingProgress: 0,
+            loadingTimer: null,
             busyAuth: false,
             authError: '',
             tabs: [
@@ -407,7 +428,7 @@ Vue.createApp({
             revenus: { items: [], search: '', sort: 'date_revenu', direction: 'desc' },
             revenuPrevisions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, montant_mois: 0, montant_annee: 0, attendus: 0, expirees: 0, prochaine_date: null, prochaine_source: null, source_principale: null } },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
-            budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0 } },
+            budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0, montant_initial: 0, montant_depense: 0, montant_restant: 0 } },
             previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
@@ -423,6 +444,8 @@ Vue.createApp({
         }
     },
     mounted() {
+        window.addEventListener('finance-loading-start', this.startLoading);
+        window.addEventListener('finance-loading-end', this.finishLoading);
         this.debouncedLoadCategories = debounce(() => this.loadCategories(), 250);
         this.debouncedLoadRevenus = debounce(() => this.loadRevenus(), 250);
         this.debouncedLoadRevenuPrevisions = debounce(() => this.loadRevenuPrevisions(), 250);
@@ -432,15 +455,38 @@ Vue.createApp({
         this.bootstrap();
     },
     methods: {
+        startLoading() {
+            this.isLoading = true;
+            this.loadingProgress = Math.max(this.loadingProgress, 20);
+            window.clearTimeout(this.loadingTimer);
+            this.loadingTimer = window.setTimeout(() => {
+                if (this.isLoading) this.loadingProgress = Math.max(this.loadingProgress, 75);
+            }, 180);
+        },
+        finishLoading() {
+            this.loadingProgress = 100;
+            window.clearTimeout(this.loadingTimer);
+            this.loadingTimer = window.setTimeout(() => {
+                this.isLoading = false;
+                this.loadingProgress = 0;
+            }, 350);
+        },
         async bootstrap() {
+            this.isLoading = true;
+            this.loadingProgress = 15;
             try {
                 const { data } = await api.get('/auth/me');
                 this.auth.user = data.data;
+                this.loadingProgress = 45;
                 await this.loadAll();
+                this.loadingProgress = 100;
             } catch (error) {
                 if (error?.response?.status !== 401) {
                     toastr.error(this.errorMessage(error, 'Impossible de contacter le serveur.'));
                 }
+            } finally {
+                this.loadingProgress = 100;
+                this.isLoading = false;
             }
         },
         async loadAll() {
@@ -450,39 +496,51 @@ Vue.createApp({
         async login() {
             this.authError = '';
             this.busyAuth = true;
+            this.isLoading = true;
+            this.loadingProgress = 20;
             try {
                 const { data } = await api.post('/auth/login', this.loginForm);
                 this.auth.user = data.data;
+                this.loadingProgress = 55;
                 this.activeTab = 'categories';
                 toastr.success(data.message);
                 try {
                     await this.loadAll();
+                    this.loadingProgress = 100;
                 } catch (error) {
                     toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
                 }
             } catch (error) {
                 this.handleAuthError(error);
             } finally {
+                this.loadingProgress = 100;
                 this.busyAuth = false;
+                this.isLoading = false;
             }
         },
         async register() {
             this.authError = '';
             this.busyAuth = true;
+            this.isLoading = true;
+            this.loadingProgress = 20;
             try {
                 const { data } = await api.post('/auth/register', this.registerForm);
                 this.auth.user = data.data;
+                this.loadingProgress = 55;
                 this.activeTab = 'categories';
                 toastr.success(data.message);
                 try {
                     await this.loadAll();
+                    this.loadingProgress = 100;
                 } catch (error) {
                     toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
                 }
             } catch (error) {
                 this.handleAuthError(error);
             } finally {
+                this.loadingProgress = 100;
                 this.busyAuth = false;
+                this.isLoading = false;
             }
         },
         async logout() {
@@ -629,6 +687,7 @@ Vue.createApp({
                 this.depenseForm = { id_depense: null, id_categorie: '', montant: '', date_depense: '', description: '' };
                 toastr.success('Dépense enregistrée.');
                 await this.loadDepenses();
+                await this.loadBudgets();
             } catch (error) {
                 toastr.error(this.errorMessage(error, 'Impossible d’enregistrer la dépense.'));
             }

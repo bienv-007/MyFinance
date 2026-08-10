@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DepenseRequest;
 use App\Http\Resources\DepenseResource;
+use App\Models\Budget;
 use App\Models\Depense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class DepenseController extends Controller
 {
@@ -33,6 +35,8 @@ class DepenseController extends Controller
 
     public function store(DepenseRequest $request): JsonResponse
     {
+        $this->ensureBudgetLimit($request, $request->validated());
+
         $depense = Depense::create([
             ...$request->validated(),
             'id_utilisateur' => $request->user()->id_utilisateur,
@@ -51,6 +55,7 @@ class DepenseController extends Controller
     public function update(DepenseRequest $request, Depense $depense): JsonResponse
     {
         abort_unless($depense->id_utilisateur === $request->user()->id_utilisateur, 403);
+        $this->ensureBudgetLimit($request, $request->validated(), $depense);
         $depense->update($request->validated());
 
         return response()->json(['data' => new DepenseResource($depense->load('categorie'))]);
@@ -62,5 +67,31 @@ class DepenseController extends Controller
         $depense->delete();
 
         return response()->json(['message' => 'Dépense supprimée.']);
+    }
+
+    private function ensureBudgetLimit(Request $request, array $data, ?Depense $current = null): void
+    {
+        $budgets = Budget::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->whereDate('date_debut', '<=', $data['date_depense'])
+            ->whereDate('date_fin', '>=', $data['date_depense'])
+            ->get();
+
+        foreach ($budgets as $budget) {
+            $spent = Depense::query()
+                ->where('id_utilisateur', $request->user()->id_utilisateur)
+                ->whereBetween('date_depense', [$budget->date_debut, $budget->date_fin])
+                ->when($current, fn ($query) => $query->where($current->getKeyName(), '!=', $current->getKey()))
+                ->sum('montant');
+
+            if ((float) $spent + (float) $data['montant'] > (float) $budget->montant_total) {
+                throw ValidationException::withMessages([
+                    'montant' => sprintf(
+                        'Cette dépense dépasse le budget disponible (%s FC restants).',
+                        number_format(max(0, (float) $budget->montant_total - (float) $spent), 2, ',', ' '),
+                    ),
+                ]);
+            }
+        }
     }
 }
