@@ -6,6 +6,7 @@ use App\Http\Requests\BudgetRequest;
 use App\Models\Budget;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class BudgetController extends Controller
@@ -59,13 +60,22 @@ class BudgetController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
+        $budget = $request->user()->budgets()->first();
+
+        if ($budget !== null) {
+            return redirect()
+                ->route('budgets.edit', $budget)
+                ->with('error', 'Vous ne pouvez avoir qu’un seul budget. Modifiez le budget existant.');
+        }
+
         return view('budgets.create', ['budget' => new Budget]);
     }
 
     public function store(BudgetRequest $request): RedirectResponse
     {
+        $this->ensureUserHasNoBudget($request);
         $request->user()->budgets()->create($request->validated());
 
         return redirect()
@@ -110,5 +120,14 @@ class BudgetController extends Controller
     private function ensureOwnership(Request $request, Budget $budget): void
     {
         abort_unless($budget->id_utilisateur === $request->user()->id_utilisateur, 404);
+    }
+
+    private function ensureUserHasNoBudget(Request $request): void
+    {
+        if ($request->user()->budgets()->exists()) {
+            throw ValidationException::withMessages([
+                'budget' => 'Vous ne pouvez avoir qu’un seul budget. Modifiez le budget existant.',
+            ]);
+        }
     }
 }

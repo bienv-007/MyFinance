@@ -11,10 +11,12 @@
                 <h2 class="mt-1 text-3xl font-bold tracking-tight text-slate-950">Planifiez avec clarté.</h2>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Gardez une vue simple et précise de vos enveloppes mensuelles.</p>
             </div>
-            <a href="{{ route('budgets.create') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100">
-                <i class="fa-solid fa-plus"></i>
-                Nouveau budget
-            </a>
+            @if ($stats['total'] === 0)
+                <a href="{{ route('budgets.create') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100">
+                    <i class="fa-solid fa-plus"></i>
+                    Nouveau budget
+                </a>
+            @endif
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">

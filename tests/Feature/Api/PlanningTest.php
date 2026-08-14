@@ -32,16 +32,16 @@ class BudgetTest extends TestCase
         ];
     }
 
-    public function test_index_returns_only_own_budgets_with_pagination(): void
+    public function test_index_returns_only_the_users_single_budget(): void
     {
         $user = $this->actingAsUser();
-        Budget::factory()->count(3)->create(['id_utilisateur' => $user->id_utilisateur]);
+        Budget::factory()->create(['id_utilisateur' => $user->id_utilisateur]);
         Budget::factory()->create(['id_utilisateur' => User::factory()->create()->id_utilisateur]);
 
         $this->getJson('/api/budgets')
             ->assertStatus(200)
-            ->assertJsonCount(3, 'data')
-            ->assertJsonPath('meta.total', 3)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.total', 1)
             ->assertJsonStructure(['meta' => ['current_page', 'last_page', 'total']]);
     }
 
@@ -65,6 +65,16 @@ class BudgetTest extends TestCase
         ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('date_fin');
+    }
+
+    public function test_store_rejects_a_second_budget_for_the_same_user(): void
+    {
+        $user = $this->actingAsUser();
+        Budget::factory()->create(['id_utilisateur' => $user->id_utilisateur]);
+
+        $this->postJson('/api/budgets', $this->budgetPayload())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('budget');
     }
 
     public function test_show_own_budget(): void

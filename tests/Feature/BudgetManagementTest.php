@@ -44,6 +44,29 @@ class BudgetManagementTest extends TestCase
             ->assertSessionHasErrors(['montant_total', 'date_fin']);
     }
 
+    public function test_budget_creation_rejects_a_second_budget_for_the_same_user(): void
+    {
+        $user = $this->actingAsBudgetUser();
+        $user->budgets()->create([
+            'periode' => 'Août 2026',
+            'montant_total' => 5000,
+            'date_debut' => '2026-08-01',
+            'date_fin' => '2026-08-31',
+        ]);
+
+        $this->from(route('budgets.create'))
+            ->post(route('budgets.store'), [
+                'periode' => 'Septembre 2026',
+                'montant_total' => 3200,
+                'date_debut' => '2026-09-01',
+                'date_fin' => '2026-09-30',
+            ])
+            ->assertRedirect(route('budgets.create'))
+            ->assertSessionHasErrors('budget');
+
+        $this->assertSame(1, $user->budgets()->count());
+    }
+
     public function test_authenticated_user_can_create_update_and_delete_a_budget(): void
     {
         $user = $this->actingAsBudgetUser();

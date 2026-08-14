@@ -705,6 +705,7 @@ Vue.createApp({
                 const payload = data?.data ?? data;
                 this.budgets.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
                 this.budgets.stats = data?.stats ?? { total: 0, actifs: 0, montant_total: 0 };
+                if (this.budgets.items.length === 1 && !this.budgetForm.id_budget) this.editBudget(this.budgets.items[0]);
             } catch (error) {
                 this.budgets.items = [];
                 this.notify('error', this.errorMessage(error, 'Impossible de charger les budgets.'));
@@ -812,7 +813,9 @@ Vue.createApp({
             this.activeTab = 'budgets';
         },
         resetBudgetForm() {
-            this.budgetForm = { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' };
+            this.budgetForm = this.budgets.items.length === 1
+                ? { ...this.budgets.items[0] }
+                : { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' };
             this.budgetErrors = {};
         },
         formatMoney(value) {
