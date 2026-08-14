@@ -8,10 +8,11 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Categorie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CategoryController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $query = Categorie::query()->orderBy('nom_categorie');
 
@@ -19,9 +20,7 @@ class CategoryController extends Controller
             $query->where('nom_categorie', 'like', "%{$search}%");
         }
 
-        return response()->json(
-            CategoryResource::collection($query->paginate(10))
-        );
+        return CategoryResource::collection($query->paginate(10));
     }
 
     public function store(CategoryRequest $request): JsonResponse
@@ -45,8 +44,8 @@ class CategoryController extends Controller
 
     public function destroy(Categorie $category): JsonResponse
     {
-        if ($category->depenses()->exists()) {
-            return response()->json(['message' => 'Catégorie utilisée par des dépenses.'], 422);
+        if ($category->depenses()->exists() || $category->depensePrevisions()->exists()) {
+            return response()->json(['message' => 'Catégorie utilisée par des dépenses ou des prévisions.'], 422);
         }
 
         $category->delete();

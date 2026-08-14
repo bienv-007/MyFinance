@@ -19,4 +19,4 @@ Route::middleware('auth:web')->group(function (): void {
     Route::resource('depense-previsions', DepensePrevisionController::class);
 });
 
-Route::view('/{any}', 'welcome')->where('any', '.*');
+Route::view('/{any}', 'welcome')->where('any', '^(?!api(?:/|$)).*');

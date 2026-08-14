@@ -47,3 +47,6 @@ Route::middleware('web')->group(function (): void {
             ->name('api.depense-previsions.validate');
     });
 });
+
+Route::any('{any}', fn () => response()->json(['message' => 'Route API introuvable.'], 404))
+    ->where('any', '.*');
