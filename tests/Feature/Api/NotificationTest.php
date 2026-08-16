@@ -74,4 +74,15 @@ class NotificationTest extends TestCase
         $this->deleteJson("/api/notifications/{$notification->id_notification}")->assertOk();
         $this->assertDatabaseMissing('notifications', ['id_notification' => $notification->id_notification]);
     }
+
+    public function test_user_can_delete_all_own_notifications(): void
+    {
+        $user = User::factory()->create();
+        Notification::create(['id_utilisateur' => $user->id_utilisateur, 'type' => 'budget_utilise_80', 'titre' => 'Alerte', 'contenu' => 'Notification à supprimer.']);
+        Notification::create(['id_utilisateur' => User::factory()->create()->id_utilisateur, 'type' => 'budget_utilise_80', 'titre' => 'Privée', 'contenu' => 'Cette notification doit être conservée.']);
+
+        $this->actingAs($user)->deleteJson('/api/notifications')->assertOk();
+
+        $this->assertDatabaseCount('notifications', 1);
+    }
 }

@@ -21,6 +21,7 @@ Route::middleware('web')->group(function (): void {
         Route::apiResource('categories', CategoryController::class);
         Route::get('budgets/historiques', [BudgetController::class, 'history'])->name('api.budgets.history');
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('notifications', [NotificationController::class, 'destroyAll'])->name('api.notifications.destroy-all');
         Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
         Route::apiResource('notifications', NotificationController::class)
             ->only(['index', 'show', 'destroy'])

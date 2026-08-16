@@ -62,7 +62,7 @@
                         </div>
                     </div>
                     <div v-if="auth.user" class="flex items-center gap-3">
-                    <a href="{{ route('notifications.index') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span v-if="notificationUnreadCount" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">@{{ notificationUnreadCount }}</span></a>
+                    <button @click="activeTab = 'notifications'" class="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span v-if="notificationUnreadCount" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">@{{ notificationUnreadCount }}</span></button>
                     <button @click="logout" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-700">
                         <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                     </button>
@@ -273,6 +273,19 @@
                         </article>
                     </div>
 
+                    <div v-if="activeTab==='notifications'" class="mx-auto max-w-4xl space-y-6">
+                        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                            <div><p class="text-sm font-medium text-indigo-600">Centre de notifications</p><h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Restez informé</h3></div>
+                            <div v-if="notifications.items.length" class="flex gap-3"><button @click="markAllNotificationsAsRead" class="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Tout lire</button><button @click="deleteAllNotifications" class="rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-100">Tout supprimer</button></div>
+                        </div>
+                        <div v-if="!notifications.items.length" class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-indigo-50 text-2xl text-indigo-500"><i class="fa-regular fa-bell"></i></div><h4 class="mt-5 text-xl font-bold text-slate-950">Aucune notification</h4><p class="mt-2 text-sm text-slate-500">Les événements importants de votre gestion financière apparaîtront ici.</p></div>
+                        <article v-for="notification in notifications.items" :key="notification.id_notification" class="flex gap-4 rounded-3xl border p-5 shadow-sm" :class="notification.est_lue ? 'border-slate-200 bg-white' : 'border-indigo-100 bg-indigo-50/50'">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" :class="notification.type.includes('depense') ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'"><i class="fa-solid" :class="notification.type.includes('depense') ? 'fa-receipt' : 'fa-circle-check'"></i></div>
+                            <div class="min-w-0 flex-1"><div class="flex flex-wrap items-start justify-between gap-2"><button @click="markNotificationAsRead(notification)" class="text-left font-bold text-slate-950 hover:text-indigo-600">@{{ notification.titre }}</button><time class="text-xs text-slate-400">@{{ formatDateTime(notification.date_notification) }}</time></div><p class="mt-1 text-sm leading-6 text-slate-600">@{{ notification.contenu }}</p><span v-if="!notification.est_lue" class="mt-3 inline-flex rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-700">Non lue</span></div>
+                            <button @click="deleteNotification(notification)" class="text-slate-400 hover:text-rose-600" aria-label="Supprimer la notification"><i class="fa-solid fa-trash"></i></button>
+                        </article>
+                    </div>
+
                     <div v-if="activeTab==='budgets'" class="space-y-6">
                         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                             <div>
@@ -431,6 +444,7 @@ Vue.createApp({
                 { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
                 { key: 'historiques', label: 'Historique', icon: 'fa-solid fa-clock-rotate-left' },
                 { key: 'previsions', label: 'Prévisions de dépenses', icon: 'fa-solid fa-calendar-days' },
+                { key: 'notifications', label: 'Notifications', icon: 'fa-regular fa-bell' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
@@ -449,6 +463,7 @@ Vue.createApp({
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0, montant_initial: 0, montant_depense: 0, montant_restant: 0 } },
             historiques: { items: [] },
+            notifications: { items: [], knownIds: [], refreshTimer: null, initialized: false },
             previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
@@ -473,7 +488,9 @@ Vue.createApp({
         this.debouncedLoadBudgets = debounce(() => this.loadBudgets(), 250);
         this.debouncedLoadPrevisions = debounce(() => this.loadPrevisions(), 250);
         this.bootstrap();
+        this.notifications.refreshTimer = window.setInterval(() => this.loadNotifications(), 15000);
     },
+    beforeUnmount() { window.clearInterval(this.notifications.refreshTimer); },
     methods: {
         startLoading() {
             this.isLoading = true;
@@ -583,8 +600,52 @@ Vue.createApp({
             }
         },
         async loadNotifications() {
-            const { data } = await api.get('/notifications');
-            this.notificationUnreadCount = data?.unread_count ?? 0;
+            try {
+                const { data } = await api.get('/notifications');
+                const items = data?.data ?? [];
+                const fresh = items.filter((item) => !this.notifications.knownIds.includes(item.id_notification));
+                this.notifications.items = items;
+                this.notifications.knownIds = [...new Set([...this.notifications.knownIds, ...items.map((item) => item.id_notification)])];
+                this.notificationUnreadCount = data?.unread_count ?? 0;
+                if (this.notifications.initialized && fresh.length) fresh.reverse().forEach((item) => this.notify('info', item.titre));
+                this.notifications.initialized = true;
+            } catch (error) {
+                this.notifications.items = [];
+            }
+        },
+        async markNotificationAsRead(notification) {
+            if (notification.est_lue) return;
+            try {
+                await api.patch(`/notifications/${notification.id_notification}/read`);
+                notification.est_lue = true;
+                this.notificationUnreadCount = Math.max(0, this.notificationUnreadCount - 1);
+            } catch (error) { this.notify('error', this.errorMessage(error, 'Impossible de marquer la notification comme lue.')); }
+        },
+        async markAllNotificationsAsRead() {
+            try {
+                await api.patch('/notifications/read-all');
+                this.notifications.items.forEach((item) => { item.est_lue = true; });
+                this.notificationUnreadCount = 0;
+                this.notify('success', 'Toutes les notifications ont été marquées comme lues.');
+            } catch (error) { this.notify('error', this.errorMessage(error, 'Impossible de mettre à jour les notifications.')); }
+        },
+        async deleteNotification(notification) {
+            try {
+                await api.delete(`/notifications/${notification.id_notification}`);
+                this.notifications.items = this.notifications.items.filter((item) => item.id_notification !== notification.id_notification);
+                if (!notification.est_lue) this.notificationUnreadCount = Math.max(0, this.notificationUnreadCount - 1);
+                this.notify('success', 'Notification supprimée.');
+            } catch (error) { this.notify('error', this.errorMessage(error, 'Impossible de supprimer la notification.')); }
+        },
+        async deleteAllNotifications() {
+            const confirmation = await Swal.fire({ title: 'Tout supprimer ?', text: 'Cette action est irréversible.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Supprimer', cancelButtonText: 'Annuler' });
+            if (!confirmation.isConfirmed) return;
+            try {
+                await api.delete('/notifications');
+                this.notifications.items = [];
+                this.notificationUnreadCount = 0;
+                this.notify('success', 'Toutes les notifications ont été supprimées.');
+            } catch (error) { this.notify('error', this.errorMessage(error, 'Impossible de supprimer les notifications.')); }
         },
         async saveCategory() {
             try {
@@ -856,6 +917,10 @@ Vue.createApp({
 
             const [year, month, day] = value.substring(0, 10).split('-');
             return `${day}/${month}/${year}`;
+        },
+        formatDateTime(value) {
+            if (!value) return '-';
+            return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
         },
         statusClass(status) {
             if (status === 'En cours') return 'bg-emerald-50 text-emerald-700';

@@ -77,7 +77,7 @@
                     class="mt-1 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('notifications.*') ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <i class="fa-regular fa-bell w-5 text-center"></i>
                     <span>Notifications</span>
-                    @if ($unreadNotificationsCount > 0)<span class="ml-auto rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $unreadNotificationsCount }}</span>@endif
+                    <span data-sidebar-notification-count @class(['ml-auto rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white', 'hidden' => $unreadNotificationsCount === 0])>{{ $unreadNotificationsCount }}</span>
                 </a>
             </div>
 
@@ -113,19 +113,21 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3 text-sm text-slate-500">
-                        <div class="relative">
+                        <div class="relative" data-notification-center data-notifications-url="{{ route('api.notifications.index') }}" data-notification-show-url="{{ url('notifications') }}">
                             <button type="button" @click="notificationsOpen = !notificationsOpen" class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Notifications">
                                 <i class="fa-regular fa-bell"></i>
-                                @if ($unreadNotificationsCount > 0)<span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{{ $unreadNotificationsCount }}</span>@endif
+                                <span data-header-notification-count @class(['absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white', 'hidden' => $unreadNotificationsCount === 0])>{{ $unreadNotificationsCount }}</span>
                             </button>
                             <div x-cloak x-show="notificationsOpen" @click.outside="notificationsOpen = false" x-transition class="absolute right-0 top-12 z-30 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
                                 <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3"><p class="font-semibold text-slate-900">Notifications</p><a href="{{ route('notifications.index') }}" class="text-xs font-semibold text-indigo-600">Tout voir</a></div>
-                                @forelse ($recentNotifications as $notification)
-                                    <a href="{{ route('notifications.show', $notification) }}" class="block border-b border-slate-100 px-4 py-3 hover:bg-slate-50 {{ $notification->est_lue ? '' : 'bg-indigo-50/50' }}"><p class="truncate text-sm font-semibold text-slate-800">{{ $notification->titre }}</p><p class="mt-1 truncate text-xs text-slate-500">{{ $notification->contenu }}</p></a>
-                                @empty
-                                    <p class="px-4 py-8 text-center text-sm text-slate-500">Aucune notification.</p>
-                                @endforelse
-                                @if ($unreadNotificationsCount === 0 && $recentNotifications->isNotEmpty())<p class="px-4 py-3 text-center text-xs text-slate-400">Aucune notification non lue.</p>@endif
+                                <div data-notification-list>
+                                    @forelse ($recentNotifications as $notification)
+                                        <a data-notification-id="{{ $notification->id_notification }}" href="{{ route('notifications.show', $notification) }}" class="block border-b border-slate-100 px-4 py-3 hover:bg-slate-50 {{ $notification->est_lue ? '' : 'bg-indigo-50/50' }}"><p class="truncate text-sm font-semibold text-slate-800">{{ $notification->titre }}</p><p class="mt-1 truncate text-xs text-slate-500">{{ $notification->contenu }}</p></a>
+                                    @empty
+                                        <p data-notifications-empty class="px-4 py-8 text-center text-sm text-slate-500">Aucune notification.</p>
+                                    @endforelse
+                                </div>
+                                <p data-notifications-all-read @class(['px-4 py-3 text-center text-xs text-slate-400', 'hidden' => $unreadNotificationsCount > 0 || $recentNotifications->isEmpty()])>Aucune notification non lue.</p>
                             </div>
                         </div>
                     <div class="hidden items-center gap-3 text-sm text-slate-500 sm:flex">

@@ -43,6 +43,13 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Toutes les notifications ont été marquées comme lues.']);
     }
 
+    public function destroyAll(Request $request): JsonResponse
+    {
+        $request->user()->notifications()->delete();
+
+        return response()->json(['message' => 'Toutes les notifications ont été supprimées.']);
+    }
+
     public function destroy(Request $request, Notification $notification): JsonResponse
     {
         $this->ensureOwnership($request, $notification);
