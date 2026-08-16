@@ -16,6 +16,8 @@ class Revenu extends Model
 
     protected $fillable = [
         'id_utilisateur',
+        'id_budget',
+        'id_budget_historique',
         'montant',
         'source',
         'date_revenu',

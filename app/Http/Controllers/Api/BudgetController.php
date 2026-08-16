@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BudgetRequest;
 use App\Http\Resources\BudgetResource;
 use App\Models\Budget;
+use App\Models\BudgetHistorique;
 use App\Models\Depense;
+use App\Services\BudgetCycleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class BudgetController extends Controller
 {
+    public function __construct(private readonly BudgetCycleService $cycles) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $query = Budget::query()->where('id_utilisateur', $request->user()->id_utilisateur);
@@ -42,12 +46,24 @@ class BudgetController extends Controller
         $budgets = Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
             ->get();
-        $montantDepense = $budgets->sum(fn (Budget $budget): float => (float) Depense::query()
-            ->where('id_utilisateur', $request->user()->id_utilisateur)
-            ->whereBetween('date_depense', [$budget->date_debut, $budget->date_fin])
-            ->sum('montant'));
+        $montantDepense = (float) Depense::query()->where('id_utilisateur', $request->user()->id_utilisateur)->whereNull('id_budget_historique')->sum('montant');
         $montantInitial = (float) ($stats?->montant_total ?? 0);
         $montantRestant = (float) $budgets->sum('solde');
+        $historiques = BudgetHistorique::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->latest('date_archivage')
+            ->get()
+            ->map(fn (BudgetHistorique $historique): array => [
+                'id_budget_historique' => $historique->id_budget_historique,
+                'id_budget' => $historique->id_budget,
+                'periode' => $historique->periode,
+                'montant_total' => $historique->montant_total,
+                'solde' => $historique->solde_final,
+                'date_debut' => $historique->date_debut?->format('Y-m-d'),
+                'date_fin' => $historique->date_fin?->format('Y-m-d'),
+                'statut' => 'Archivé',
+                'est_historique' => true,
+            ]);
 
         return BudgetResource::collection($query->paginate(10))->additional([
             'stats' => [
@@ -58,7 +74,29 @@ class BudgetController extends Controller
                 'montant_depense' => $montantDepense,
                 'montant_restant' => $montantRestant,
             ],
+            'historiques' => $historiques,
         ]);
+    }
+
+    public function history(Request $request): JsonResponse
+    {
+        $historiques = BudgetHistorique::query()
+            ->with(['depenses', 'revenus'])
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->latest('date_archivage')
+            ->get()
+            ->map(fn (BudgetHistorique $historique): array => [
+                'id_budget_historique' => $historique->id_budget_historique,
+                'periode' => $historique->periode,
+                'montant_total' => $historique->montant_total,
+                'montant_depense' => $historique->montant_depense,
+                'solde_final' => $historique->solde_final,
+                'date_archivage' => $historique->date_archivage?->toISOString(),
+                'depenses' => $historique->depenses,
+                'revenus' => $historique->revenus,
+            ]);
+
+        return response()->json(['data' => $historiques]);
     }
 
     public function store(BudgetRequest $request): JsonResponse
@@ -87,14 +125,8 @@ class BudgetController extends Controller
     {
         abort_unless($budget->id_utilisateur === $request->user()->id_utilisateur, 403);
         $data = $request->validated();
-        $reinitialiserSolde = (bool) ($data['reinitialiser_solde'] ?? false);
         unset($data['reinitialiser_solde']);
-
-        if ($reinitialiserSolde) {
-            $data['solde'] = $data['montant_total'];
-        }
-
-        $budget->update($data);
+        $this->cycles->restart($budget, $data);
 
         return response()->json(['data' => new BudgetResource($budget)]);
     }

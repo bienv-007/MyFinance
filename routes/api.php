@@ -19,6 +19,7 @@ Route::middleware('web')->group(function (): void {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
         Route::apiResource('categories', CategoryController::class);
+        Route::get('budgets/historiques', [BudgetController::class, 'history'])->name('api.budgets.history');
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
         Route::apiResource('notifications', NotificationController::class)

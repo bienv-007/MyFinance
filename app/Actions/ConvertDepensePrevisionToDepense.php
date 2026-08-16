@@ -37,6 +37,7 @@ class ConvertDepensePrevisionToDepense
 
             $depense = Depense::create([
                 'id_utilisateur' => $prevision->id_utilisateur,
+                'id_budget' => $budget->id_budget,
                 'id_categorie' => $prevision->id_categorie,
                 'montant' => $prevision->montant_previsionnel,
                 'date_depense' => $prevision->date_previsionnelle->toDateString(),
@@ -44,6 +45,7 @@ class ConvertDepensePrevisionToDepense
             ]);
 
             $budget->decrement('solde', $prevision->montant_previsionnel);
+            $this->notifications->notifyBudgetUsageThresholds($budget->refresh());
             $prevision->delete();
             $this->notifications->createOnce(
                 $prevision->id_utilisateur,

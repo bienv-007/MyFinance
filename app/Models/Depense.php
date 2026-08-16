@@ -16,6 +16,8 @@ class Depense extends Model
 
     protected $fillable = [
         'id_utilisateur',
+        'id_budget',
+        'id_budget_historique',
         'id_categorie',
         'montant',
         'date_depense',

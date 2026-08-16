@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RevenuRequest;
 use App\Http\Resources\RevenuResource;
 use App\Models\Revenu;
+use App\Models\Budget;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,10 @@ class RevenuController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Revenu::query()->where('id_utilisateur', $request->user()->id_utilisateur);
+
+        if ($request->boolean('cycle_actif')) {
+            $query->whereNull('id_budget_historique');
+        }
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function ($q) use ($search): void {
@@ -34,6 +39,7 @@ class RevenuController extends Controller
         $revenu = Revenu::create([
             ...$request->validated(),
             'id_utilisateur' => $request->user()->id_utilisateur,
+            'id_budget' => Budget::query()->where('id_utilisateur', $request->user()->id_utilisateur)->whereDate('date_debut', '<=', $request->date_revenu)->whereDate('date_fin', '>=', $request->date_revenu)->value('id_budget'),
         ]);
 
         return response()->json(['data' => new RevenuResource($revenu)], 201);

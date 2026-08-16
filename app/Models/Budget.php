@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Budget extends Model
 {
@@ -40,6 +41,11 @@ class Budget extends Model
     public function utilisateur(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_utilisateur', 'id_utilisateur');
+    }
+
+    public function historiques(): HasMany
+    {
+        return $this->hasMany(BudgetHistorique::class, 'id_budget', 'id_budget');
     }
 
     public function getStatutAttribute(): string

@@ -219,6 +219,29 @@ class DepensePrevisionManagementTest extends TestCase
         $this->assertDatabaseMissing('depenses', ['description' => 'Consultation']);
     }
 
+    public function test_validating_a_prevision_notifies_each_budget_usage_threshold_reached(): void
+    {
+        $user = $this->actingAsPrevisionUser();
+        $category = Categorie::create(['nom_categorie' => 'Logement']);
+        $prevision = $user->depensePrevisions()->create([
+            'id_categorie' => $category->id_categorie,
+            'montant_previsionnel' => 1000,
+            'date_previsionnelle' => today()->toDateString(),
+            'description' => 'Loyer',
+        ]);
+        $this->createBudget($user, 1000, today()->subDay(), today()->addDay());
+
+        $this->post(route('depense-previsions.validate', $prevision))->assertRedirect();
+
+        $this->assertDatabaseCount('notifications', 4);
+        foreach ([80, 90, 100] as $threshold) {
+            $this->assertDatabaseHas('notifications', [
+                'id_utilisateur' => $user->id_utilisateur,
+                'type' => "budget_utilise_{$threshold}",
+            ]);
+        }
+    }
+
     private function createBudget(User $user, float $solde, $dateDebut, $dateFin): Budget
     {
         return $user->budgets()->create([

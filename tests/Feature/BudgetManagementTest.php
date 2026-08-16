@@ -96,6 +96,11 @@ class BudgetManagementTest extends TestCase
             'id_budget' => $budget->id_budget,
             'periode' => 'Septembre révisé',
         ]);
+        $this->assertDatabaseHas('budget_historiques', [
+            'id_budget' => $budget->id_budget,
+            'periode' => 'Septembre 2026',
+            'montant_total' => 3200,
+        ]);
 
         $this->delete(route('budgets.destroy', $budget))
             ->assertRedirect(route('budgets.index'))

@@ -14,6 +14,7 @@ Route::middleware('auth:web')->group(function (): void {
     Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::delete('notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
     Route::resource('notifications', NotificationController::class)->only(['index', 'show', 'destroy']);
+    Route::get('budgets/{budget}/historique', [BudgetController::class, 'history'])->name('budgets.history');
     Route::resource('budgets', BudgetController::class);
     Route::post('revenu-previsions/{revenu_prevision}/receive', [RevenuPrevisionController::class, 'markAsReceived'])
         ->name('revenu-previsions.receive');

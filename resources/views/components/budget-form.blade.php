@@ -65,7 +65,7 @@
                 class="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
             <span>
                 <span class="block font-semibold text-slate-900">Réinitialiser le solde</span>
-                <span class="mt-0.5 block text-slate-500">Le solde restant sera fixé au nouveau montant total saisi.</span>
+                <span class="mt-0.5 block text-slate-500">Le cycle actuel sera archivé et le nouveau montant deviendra le solde de départ.</span>
             </span>
         </label>
     @endif

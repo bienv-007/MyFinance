@@ -7,6 +7,7 @@ use App\Http\Requests\DepenseRequest;
 use App\Http\Resources\DepenseResource;
 use App\Models\Budget;
 use App\Models\Depense;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,11 +15,17 @@ use Illuminate\Validation\ValidationException;
 
 class DepenseController extends Controller
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = Depense::query()
             ->with('categorie')
             ->where('id_utilisateur', $request->user()->id_utilisateur);
+
+        if ($request->boolean('cycle_actif')) {
+            $query->whereNull('id_budget_historique');
+        }
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function ($q) use ($search): void {
@@ -43,6 +50,7 @@ class DepenseController extends Controller
             $depense = Depense::create([
                 ...$data,
                 'id_utilisateur' => $request->user()->id_utilisateur,
+                'id_budget' => $this->budgetsForDate($request, $data['date_depense'])->first()?->id_budget,
             ]);
             $this->debitBudget($request, $data);
 
@@ -65,6 +73,10 @@ class DepenseController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($request, $depense, $data): void {
+            if ($depense->id_budget_historique !== null) {
+                $depense->update($data);
+                return;
+            }
             $this->creditBudget($request, [
                 'date_depense' => $depense->date_depense->toDateString(),
                 'montant' => $depense->montant,
@@ -81,6 +93,10 @@ class DepenseController extends Controller
     {
         abort_unless($depense->id_utilisateur === $request->user()->id_utilisateur, 403);
         DB::transaction(function () use ($request, $depense): void {
+            if ($depense->id_budget_historique !== null) {
+                $depense->delete();
+                return;
+            }
             $this->creditBudget($request, [
                 'date_depense' => $depense->date_depense->toDateString(),
                 'montant' => $depense->montant,
@@ -122,7 +138,10 @@ class DepenseController extends Controller
     private function debitBudget(Request $request, array $data): void
     {
         $this->budgetsForDate($request, $data['date_depense'])
-            ->each(fn (Budget $budget) => $budget->decrement('solde', $data['montant']));
+            ->each(function (Budget $budget) use ($data): void {
+                $budget->decrement('solde', $data['montant']);
+                $this->notifications->notifyBudgetUsageThresholds($budget->refresh());
+            });
     }
 
     private function creditBudget(Request $request, array $data): void

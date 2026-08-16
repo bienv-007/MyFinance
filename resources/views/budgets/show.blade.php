@@ -16,6 +16,7 @@
                 </div>
             </div>
             <div class="flex gap-3 pl-[52px] sm:pl-0">
+                <a href="{{ route('budgets.history', $budget) }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600 sm:flex-none"><i class="fa-solid fa-clock-rotate-left"></i>Historique</a>
                 <a href="{{ route('budgets.edit', $budget) }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600 sm:flex-none">
                     <i class="fa-solid fa-pen-to-square"></i>
                     Modifier

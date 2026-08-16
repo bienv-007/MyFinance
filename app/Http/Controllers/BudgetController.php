@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BudgetRequest;
 use App\Models\Budget;
+use App\Services\BudgetCycleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -11,6 +12,8 @@ use Illuminate\View\View;
 
 class BudgetController extends Controller
 {
+    public function __construct(private readonly BudgetCycleService $cycles) {}
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -104,20 +107,20 @@ class BudgetController extends Controller
     {
         $this->ensureOwnership($request, $budget);
         $data = $request->validated();
-        $reinitialiserSolde = (bool) ($data['reinitialiser_solde'] ?? false);
         unset($data['reinitialiser_solde']);
-
-        if ($reinitialiserSolde) {
-            $data['solde'] = $data['montant_total'];
-        }
-
-        $budget->update($data);
+        $this->cycles->restart($budget, $data);
 
         return redirect()
             ->route('budgets.index')
-            ->with('success', $reinitialiserSolde
-                ? 'Le budget a été modifié et son solde a été réinitialisé.'
-                : 'Le budget a été modifié avec succès.');
+            ->with('success', 'Le budget a été modifié, archivé et ses dépenses ont été réinitialisées.');
+    }
+
+    public function history(Request $request, Budget $budget): View
+    {
+        $this->ensureOwnership($request, $budget);
+        $historiques = $budget->historiques()->with(['depenses', 'revenus'])->latest('date_archivage')->paginate(15);
+
+        return view('budgets.history', compact('budget', 'historiques'));
     }
 
     public function destroy(Request $request, Budget $budget): RedirectResponse

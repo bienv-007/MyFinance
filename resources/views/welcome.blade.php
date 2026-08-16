@@ -263,6 +263,16 @@
                         </div>
                     </div>
 
+                    <div v-if="activeTab==='historiques'" class="space-y-6">
+                        <div><p class="text-sm font-medium text-indigo-600">Analyse financière</p><h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Historique des budgets</h3><p class="mt-2 text-sm text-slate-500">Retrouvez les revenus et dépenses de chaque cycle terminé.</p></div>
+                        <div v-if="!historiques.items.length" class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-sm text-slate-500"><i class="fa-solid fa-clock-rotate-left mb-3 text-2xl text-indigo-400"></i><p>Aucun budget archivé pour le moment.</p></div>
+                        <article v-for="historique in historiques.items" :key="historique.id_budget_historique" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <div class="flex flex-wrap items-start justify-between gap-3"><div><h4 class="text-lg font-semibold text-slate-950">@{{ historique.periode }}</h4><p class="mt-1 text-sm text-slate-500">Archivé le @{{ formatDate(historique.date_archivage) }}</p></div><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Terminé</span></div>
+                            <div class="mt-5 grid gap-3 sm:grid-cols-3"><div class="rounded-2xl bg-indigo-50 p-4"><p class="text-xs text-indigo-600">Montant initial</p><p class="mt-1 font-bold">@{{ formatMoney(historique.montant_total) }} FC</p></div><div class="rounded-2xl bg-rose-50 p-4"><p class="text-xs text-rose-600">Dépensé</p><p class="mt-1 font-bold">@{{ formatMoney(historique.montant_depense) }} FC</p></div><div class="rounded-2xl bg-emerald-50 p-4"><p class="text-xs text-emerald-600">Solde final</p><p class="mt-1 font-bold">@{{ formatMoney(historique.solde_final) }} FC</p></div></div>
+                            <div class="mt-6 grid gap-5 lg:grid-cols-2"><div><h5 class="font-semibold text-slate-900">Dépenses (@{{ historique.depenses.length }})</h5><ul class="mt-2 space-y-2"><li v-for="depense in historique.depenses" :key="depense.id_depense" class="rounded-xl bg-rose-50 px-3 py-2 text-sm text-slate-700">@{{ depense.description || 'Dépense' }} — @{{ formatMoney(depense.montant) }} FC</li><li v-if="!historique.depenses.length" class="text-sm text-slate-500">Aucune dépense.</li></ul></div><div><h5 class="font-semibold text-slate-900">Revenus (@{{ historique.revenus.length }})</h5><ul class="mt-2 space-y-2"><li v-for="revenu in historique.revenus" :key="revenu.id_revenu" class="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-slate-700">@{{ revenu.source }} — @{{ formatMoney(revenu.montant) }} FC</li><li v-if="!historique.revenus.length" class="text-sm text-slate-500">Aucun revenu.</li></ul></div></div>
+                        </article>
+                    </div>
+
                     <div v-if="activeTab==='budgets'" class="space-y-6">
                         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                             <div>
@@ -347,12 +357,12 @@
                                     <table class="w-full min-w-[680px] text-sm">
                                         <thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Période</th><th class="py-3">Montant</th><th class="py-3">Dates</th><th class="py-3">Statut</th><th></th></tr></thead>
                                         <tbody>
-                                            <tr v-for="item in budgets.items" :key="item.id_budget" class="border-b border-slate-100 last:border-0">
+                                            <tr v-for="item in budgets.items" :key="item.id_budget_historique || item.id_budget" class="border-b border-slate-100 last:border-0">
                                                 <td class="py-4 font-semibold text-slate-900">@{{ item.periode }}</td>
                                                 <td class="py-4 font-semibold text-slate-700">@{{ formatMoney(item.montant_total) }} <span class="text-xs text-slate-400">FC</span></td>
                                                 <td class="py-4 text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</td>
                                                 <td class="py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span></td>
-                                                <td class="py-4 text-right"><button @click="editBudget(item)" class="mr-3 text-indigo-600">Modifier</button><button @click="destroy('budgets', item.id_budget)" class="text-rose-600">Supprimer</button></td>
+                                                <td class="py-4 text-right"><template v-if="!item.est_historique"><button @click="editBudget(item)" class="mr-3 text-indigo-600">Modifier</button><button @click="destroy('budgets', item.id_budget)" class="text-rose-600">Supprimer</button></template><span v-else class="text-xs font-semibold text-slate-400">Consultation</span></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -419,6 +429,7 @@ Vue.createApp({
                 { key: 'previsions-revenus', label: 'Prévisions de revenus', icon: 'fa-solid fa-arrow-trend-up' },
                 { key: 'depenses', label: 'Dépenses', icon: 'fa-solid fa-receipt' },
                 { key: 'budgets', label: 'Budgets', icon: 'fa-solid fa-chart-pie' },
+                { key: 'historiques', label: 'Historique', icon: 'fa-solid fa-clock-rotate-left' },
                 { key: 'previsions', label: 'Prévisions de dépenses', icon: 'fa-solid fa-calendar-days' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
@@ -437,6 +448,7 @@ Vue.createApp({
             revenuPrevisions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, montant_mois: 0, montant_annee: 0, attendus: 0, expirees: 0, prochaine_date: null, prochaine_source: null, source_principale: null } },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0, montant_initial: 0, montant_depense: 0, montant_restant: 0 } },
+            historiques: { items: [] },
             previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
@@ -499,7 +511,7 @@ Vue.createApp({
         },
         async loadAll() {
             await this.loadCategories();
-            await Promise.allSettled([this.loadRevenus(), this.loadRevenuPrevisions(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions(), this.loadNotifications()]);
+            await Promise.allSettled([this.loadRevenus(), this.loadRevenuPrevisions(), this.loadDepenses(), this.loadBudgets(), this.loadHistoriques(), this.loadPrevisions(), this.loadNotifications()]);
         },
         async login() {
             this.authError = '';
@@ -591,7 +603,7 @@ Vue.createApp({
         },
         editCategory(item) { this.categoryForm = { ...item }; this.activeTab = 'categories'; },
         async loadRevenus() {
-            const { data } = await api.get('/revenus', { params: { search: this.revenus.search, sort: this.revenus.sort, direction: this.revenus.direction } });
+            const { data } = await api.get('/revenus', { params: { search: this.revenus.search, sort: this.revenus.sort, direction: this.revenus.direction, cycle_actif: true } });
             const payload = data?.data ?? data;
             this.revenus.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
         },
@@ -687,7 +699,7 @@ Vue.createApp({
             return 'bg-rose-50 text-rose-700';
         },
         async loadDepenses() {
-            const { data } = await api.get('/depenses', { params: { search: this.depenses.search, sort: this.depenses.sort, direction: this.depenses.direction } });
+            const { data } = await api.get('/depenses', { params: { search: this.depenses.search, sort: this.depenses.sort, direction: this.depenses.direction, cycle_actif: true } });
             const payload = data?.data ?? data;
             this.depenses.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
         },
@@ -715,13 +727,19 @@ Vue.createApp({
                     },
                 });
                 const payload = data?.data ?? data;
-                this.budgets.items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+                const activeBudgets = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+                this.budgets.items = [...activeBudgets, ...(data?.historiques ?? [])];
                 this.budgets.stats = data?.stats ?? { total: 0, actifs: 0, montant_total: 0 };
-                if (this.budgets.items.length === 1 && !this.budgetForm.id_budget) this.editBudget(this.budgets.items[0]);
+                const budgetActif = activeBudgets[0];
+                if (budgetActif && !this.budgetForm.id_budget) this.editBudget(budgetActif);
             } catch (error) {
                 this.budgets.items = [];
                 this.notify('error', this.errorMessage(error, 'Impossible de charger les budgets.'));
             }
+        },
+        async loadHistoriques() {
+            const { data } = await api.get('/budgets/historiques');
+            this.historiques.items = data?.data ?? [];
         },
         async loadPrevisions() {
             try {
