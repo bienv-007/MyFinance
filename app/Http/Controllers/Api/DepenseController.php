@@ -9,6 +9,7 @@ use App\Models\Budget;
 use App\Models\Depense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DepenseController extends Controller
@@ -35,12 +36,18 @@ class DepenseController extends Controller
 
     public function store(DepenseRequest $request): JsonResponse
     {
-        $this->ensureBudgetLimit($request, $request->validated());
+        $data = $request->validated();
+        $depense = DB::transaction(function () use ($request, $data): Depense {
+            $this->ensureBudgetLimit($request, $data);
 
-        $depense = Depense::create([
-            ...$request->validated(),
-            'id_utilisateur' => $request->user()->id_utilisateur,
-        ]);
+            $depense = Depense::create([
+                ...$data,
+                'id_utilisateur' => $request->user()->id_utilisateur,
+            ]);
+            $this->debitBudget($request, $data);
+
+            return $depense;
+        });
 
         return response()->json(['data' => new DepenseResource($depense->load('categorie'))], 201);
     }
@@ -55,8 +62,17 @@ class DepenseController extends Controller
     public function update(DepenseRequest $request, Depense $depense): JsonResponse
     {
         abort_unless($depense->id_utilisateur === $request->user()->id_utilisateur, 403);
-        $this->ensureBudgetLimit($request, $request->validated(), $depense);
-        $depense->update($request->validated());
+        $data = $request->validated();
+
+        DB::transaction(function () use ($request, $depense, $data): void {
+            $this->creditBudget($request, [
+                'date_depense' => $depense->date_depense->toDateString(),
+                'montant' => $depense->montant,
+            ]);
+            $this->ensureBudgetLimit($request, $data);
+            $depense->update($data);
+            $this->debitBudget($request, $data);
+        });
 
         return response()->json(['data' => new DepenseResource($depense->load('categorie'))]);
     }
@@ -64,12 +80,18 @@ class DepenseController extends Controller
     public function destroy(Request $request, Depense $depense): JsonResponse
     {
         abort_unless($depense->id_utilisateur === $request->user()->id_utilisateur, 403);
-        $depense->delete();
+        DB::transaction(function () use ($request, $depense): void {
+            $this->creditBudget($request, [
+                'date_depense' => $depense->date_depense->toDateString(),
+                'montant' => $depense->montant,
+            ]);
+            $depense->delete();
+        });
 
         return response()->json(['message' => 'Dépense supprimée.']);
     }
 
-    private function ensureBudgetLimit(Request $request, array $data, ?Depense $current = null): void
+    private function ensureBudgetLimit(Request $request, array $data): void
     {
         $budgets = Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
@@ -84,20 +106,37 @@ class DepenseController extends Controller
         }
 
         foreach ($budgets as $budget) {
-            $spent = Depense::query()
-                ->where('id_utilisateur', $request->user()->id_utilisateur)
-                ->whereBetween('date_depense', [$budget->date_debut, $budget->date_fin])
-                ->when($current, fn ($query) => $query->where($current->getKeyName(), '!=', $current->getKey()))
-                ->sum('montant');
+            $solde = (float) $budget->solde;
 
-            if ((float) $spent + (float) $data['montant'] > (float) $budget->montant_total) {
+            if ((float) $data['montant'] > $solde) {
                 throw ValidationException::withMessages([
                     'montant' => sprintf(
                         'Cette dépense dépasse le budget disponible (%s FC restants).',
-                        number_format(max(0, (float) $budget->montant_total - (float) $spent), 2, ',', ' '),
+                        number_format($solde, 2, ',', ' '),
                     ),
                 ]);
             }
         }
+    }
+
+    private function debitBudget(Request $request, array $data): void
+    {
+        $this->budgetsForDate($request, $data['date_depense'])
+            ->each(fn (Budget $budget) => $budget->decrement('solde', $data['montant']));
+    }
+
+    private function creditBudget(Request $request, array $data): void
+    {
+        $this->budgetsForDate($request, $data['date_depense'])
+            ->each(fn (Budget $budget) => $budget->increment('solde', $data['montant']));
+    }
+
+    private function budgetsForDate(Request $request, string $date): \Illuminate\Support\Collection
+    {
+        return Budget::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->whereDate('date_debut', '<=', $date)
+            ->whereDate('date_fin', '>=', $date)
+            ->get();
     }
 }

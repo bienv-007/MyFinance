@@ -59,6 +59,17 @@
         </div>
     </div>
 
+    @if ($method === 'PUT')
+        <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 text-sm text-slate-700">
+            <input name="reinitialiser_solde" type="checkbox" value="1" @checked(old('reinitialiser_solde'))
+                class="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+            <span>
+                <span class="block font-semibold text-slate-900">Réinitialiser le solde</span>
+                <span class="mt-0.5 block text-slate-500">Le solde restant sera fixé au nouveau montant total saisi.</span>
+            </span>
+        </label>
+    @endif
+
     <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
         <a href="{{ route('budgets.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
             Annuler

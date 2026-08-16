@@ -42,7 +42,11 @@
                 </div>
             </div>
 
-            <div class="grid gap-6 p-6 sm:grid-cols-2 sm:p-10">
+            <div class="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3 sm:p-10">
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                    <div class="flex items-center gap-3 text-emerald-600"><i class="fa-solid fa-wallet"></i><span class="text-xs font-semibold uppercase tracking-[0.16em]">Solde restant</span></div>
+                    <p class="mt-3 text-lg font-bold text-slate-950">{{ number_format((float) $budget->solde, 2, ',', ' ') }} FC</p>
+                </div>
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-5">
                     <div class="flex items-center gap-3 text-slate-400"><i class="fa-regular fa-calendar-plus"></i><span class="text-xs font-semibold uppercase tracking-[0.16em]">Date de début</span></div>
                     <p class="mt-3 text-lg font-bold text-slate-950">{{ $budget->date_debut->format('d/m/Y') }}</p>

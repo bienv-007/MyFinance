@@ -132,7 +132,34 @@ class BudgetManagementTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.id_utilisateur', $user->id_utilisateur)
             ->assertJsonPath('data.date_debut', today()->toDateString())
+            ->assertJsonPath('data.solde', '1800.00')
             ->assertJsonPath('data.statut', 'En cours');
+    }
+
+    public function test_budget_update_can_reset_the_balance_to_the_new_amount(): void
+    {
+        $user = $this->actingAsBudgetUser();
+        $budget = $user->budgets()->create([
+            'periode' => 'Août 2026',
+            'montant_total' => 1000,
+            'solde' => 250,
+            'date_debut' => '2026-08-01',
+            'date_fin' => '2026-08-31',
+        ]);
+
+        $this->put(route('budgets.update', $budget), [
+            'periode' => 'Août 2026',
+            'montant_total' => 1800,
+            'date_debut' => '2026-08-01',
+            'date_fin' => '2026-08-31',
+            'reinitialiser_solde' => true,
+        ])->assertRedirect(route('budgets.index'));
+
+        $this->assertDatabaseHas('budgets', [
+            'id_budget' => $budget->id_budget,
+            'montant_total' => 1800,
+            'solde' => 1800,
+        ]);
     }
 
     private function actingAsBudgetUser(): User

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Categorie;
+use App\Models\Budget;
 use App\Models\Depense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -130,6 +131,7 @@ class DepensePrevisionManagementTest extends TestCase
             'date_previsionnelle' => today()->toDateString(),
             'description' => 'Courses du mois',
         ]);
+        $this->createBudget($user, 500, today()->subDay(), today()->addDay());
 
         $this->post(route('depense-previsions.validate', $prevision))
             ->assertRedirect(route('depense-previsions.index'))
@@ -147,6 +149,7 @@ class DepensePrevisionManagementTest extends TestCase
             'id_depense_prevision' => $prevision->id_depense_prevision,
         ]);
         $this->assertSame(1, Depense::query()->where('id_utilisateur', $user->id_utilisateur)->count());
+        $this->assertDatabaseHas('budgets', ['id_budget' => $user->budgets()->firstOrFail()->id_budget, 'solde' => 174.50]);
     }
 
     public function test_api_can_validate_a_prevision_and_return_the_created_depense(): void
@@ -159,6 +162,7 @@ class DepensePrevisionManagementTest extends TestCase
             'date_previsionnelle' => today()->addDay()->toDateString(),
             'description' => 'Taxi',
         ]);
+        $this->createBudget($user, 100, today(), today()->addDays(2));
 
         $this->postJson("/api/depense-previsions/{$prevision->id_depense_prevision}/validate")
             ->assertCreated()
@@ -173,6 +177,56 @@ class DepensePrevisionManagementTest extends TestCase
         ]);
         $this->assertDatabaseMissing('depense_previsions', [
             'id_depense_prevision' => $prevision->id_depense_prevision,
+        ]);
+    }
+
+    public function test_prevision_validation_requires_a_budget_for_its_date(): void
+    {
+        $user = $this->actingAsPrevisionUser();
+        $category = Categorie::create(['nom_categorie' => 'Santé']);
+        $prevision = $user->depensePrevisions()->create([
+            'id_categorie' => $category->id_categorie,
+            'montant_previsionnel' => 100,
+            'date_previsionnelle' => today()->toDateString(),
+            'description' => 'Consultation',
+        ]);
+
+        $this->from(route('depense-previsions.index'))
+            ->post(route('depense-previsions.validate', $prevision))
+            ->assertRedirect(route('depense-previsions.index'))
+            ->assertSessionHasErrors('date_previsionnelle');
+
+        $this->assertDatabaseHas('depense_previsions', ['id_depense_prevision' => $prevision->id_depense_prevision]);
+        $this->assertDatabaseMissing('depenses', ['description' => 'Consultation']);
+    }
+
+    public function test_prevision_validation_requires_a_sufficient_budget_balance(): void
+    {
+        $user = $this->actingAsPrevisionUser();
+        $category = Categorie::create(['nom_categorie' => 'Santé']);
+        $prevision = $user->depensePrevisions()->create([
+            'id_categorie' => $category->id_categorie,
+            'montant_previsionnel' => 100,
+            'date_previsionnelle' => today()->toDateString(),
+            'description' => 'Consultation',
+        ]);
+        $this->createBudget($user, 99, today()->subDay(), today()->addDay());
+
+        $this->post(route('depense-previsions.validate', $prevision))
+            ->assertSessionHasErrors('montant_previsionnel');
+
+        $this->assertDatabaseHas('depense_previsions', ['id_depense_prevision' => $prevision->id_depense_prevision]);
+        $this->assertDatabaseMissing('depenses', ['description' => 'Consultation']);
+    }
+
+    private function createBudget(User $user, float $solde, $dateDebut, $dateFin): Budget
+    {
+        return $user->budgets()->create([
+            'periode' => 'Budget de test',
+            'montant_total' => $solde,
+            'solde' => $solde,
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin,
         ]);
     }
 

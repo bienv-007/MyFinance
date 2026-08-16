@@ -20,12 +20,14 @@ class Budget extends Model
         'id_utilisateur',
         'periode',
         'montant_total',
+        'solde',
         'date_debut',
         'date_fin',
     ];
 
     protected $casts = [
         'montant_total' => 'decimal:2',
+        'solde' => 'decimal:2',
         'date_debut' => 'date',
         'date_fin' => 'date',
     ];

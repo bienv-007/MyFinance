@@ -18,10 +18,13 @@ class BudgetFactory extends Factory
      */
     public function definition(): array
     {
+        $montantTotal = fake()->randomFloat(2, 100, 100000);
+
         return [
             'id_utilisateur' => User::factory(),
             'periode' => fake()->randomElement(['2026-01', '2026-02', '2026-03', '2026-Q1', '2026-Annuel']),
-            'montant_total' => fake()->randomFloat(2, 100, 100000),
+            'montant_total' => $montantTotal,
+            'solde' => $montantTotal,
             'date_debut' => fake()->date(),
             'date_fin' => fake()->date('Y-m-d', '+1 year'),
         ];

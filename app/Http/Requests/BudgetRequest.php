@@ -16,6 +16,7 @@ class BudgetRequest extends FormRequest
         return [
             'periode' => ['required', 'string', 'max:255'],
             'montant_total' => ['required', 'numeric', 'gt:0'],
+            'reinitialiser_solde' => ['sometimes', 'boolean'],
             'date_debut' => ['required', 'date'],
             'date_fin' => ['required', 'date', 'after:date_debut'],
         ];

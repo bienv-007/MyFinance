@@ -47,6 +47,7 @@ class BudgetController extends Controller
             ->whereBetween('date_depense', [$budget->date_debut, $budget->date_fin])
             ->sum('montant'));
         $montantInitial = (float) ($stats?->montant_total ?? 0);
+        $montantRestant = (float) $budgets->sum('solde');
 
         return BudgetResource::collection($query->paginate(10))->additional([
             'stats' => [
@@ -55,7 +56,7 @@ class BudgetController extends Controller
                 'montant_total' => (float) ($stats?->montant_total ?? 0),
                 'montant_initial' => $montantInitial,
                 'montant_depense' => $montantDepense,
-                'montant_restant' => max(0, $montantInitial - $montantDepense),
+                'montant_restant' => $montantRestant,
             ],
         ]);
     }
@@ -63,10 +64,13 @@ class BudgetController extends Controller
     public function store(BudgetRequest $request): JsonResponse
     {
         $this->ensureUserHasNoBudget($request);
+        $data = $request->validated();
+        unset($data['reinitialiser_solde']);
 
         $budget = Budget::create([
-            ...$request->validated(),
+            ...$data,
             'id_utilisateur' => $request->user()->id_utilisateur,
+            'solde' => $data['montant_total'],
         ]);
 
         return response()->json(['data' => new BudgetResource($budget)], 201);
@@ -82,7 +86,15 @@ class BudgetController extends Controller
     public function update(BudgetRequest $request, Budget $budget): JsonResponse
     {
         abort_unless($budget->id_utilisateur === $request->user()->id_utilisateur, 403);
-        $budget->update($request->validated());
+        $data = $request->validated();
+        $reinitialiserSolde = (bool) ($data['reinitialiser_solde'] ?? false);
+        unset($data['reinitialiser_solde']);
+
+        if ($reinitialiserSolde) {
+            $data['solde'] = $data['montant_total'];
+        }
+
+        $budget->update($data);
 
         return response()->json(['data' => new BudgetResource($budget)]);
     }

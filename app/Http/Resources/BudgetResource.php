@@ -14,6 +14,7 @@ class BudgetResource extends JsonResource
             'id_utilisateur' => $this->id_utilisateur,
             'periode' => $this->periode,
             'montant_total' => $this->montant_total,
+            'solde' => $this->solde,
             'date_debut' => $this->date_debut?->format('Y-m-d'),
             'date_fin' => $this->date_fin?->format('Y-m-d'),
             'statut' => $this->statut,

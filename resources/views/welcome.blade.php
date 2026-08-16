@@ -314,6 +314,10 @@
                                         <button type="submit" class="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">@{{ budgetForm.id_budget ? 'Mettre à jour' : 'Créer le budget' }}</button>
                                         <button v-if="budgetForm.id_budget" type="button" @click="resetBudgetForm" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50">Annuler</button>
                                     </div>
+                                    <label v-if="budgetForm.id_budget" class="flex cursor-pointer items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 text-sm text-slate-700">
+                                        <input v-model="budgetForm.reinitialiser_solde" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span><span class="block font-semibold text-slate-900">Réinitialiser le solde</span><span class="mt-0.5 block text-slate-500">Utiliser le nouveau montant comme solde restant.</span></span>
+                                    </label>
                                 </form>
                             </div>
 
@@ -808,14 +812,14 @@ Vue.createApp({
             }
         },
         editBudget(item) {
-            this.budgetForm = { ...item };
+            this.budgetForm = { ...item, reinitialiser_solde: false };
             this.budgetErrors = {};
             this.activeTab = 'budgets';
         },
         resetBudgetForm() {
             this.budgetForm = this.budgets.items.length === 1
-                ? { ...this.budgets.items[0] }
-                : { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '' };
+                ? { ...this.budgets.items[0], reinitialiser_solde: false }
+                : { id_budget: null, periode: '', montant_total: '', date_debut: '', date_fin: '', reinitialiser_solde: false };
             this.budgetErrors = {};
         },
         formatMoney(value) {

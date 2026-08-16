@@ -76,7 +76,10 @@ class BudgetController extends Controller
     public function store(BudgetRequest $request): RedirectResponse
     {
         $this->ensureUserHasNoBudget($request);
-        $request->user()->budgets()->create($request->validated());
+        $data = $request->validated();
+        unset($data['reinitialiser_solde']);
+        $data['solde'] = $data['montant_total'];
+        $request->user()->budgets()->create($data);
 
         return redirect()
             ->route('budgets.index')
@@ -100,11 +103,21 @@ class BudgetController extends Controller
     public function update(BudgetRequest $request, Budget $budget): RedirectResponse
     {
         $this->ensureOwnership($request, $budget);
-        $budget->update($request->validated());
+        $data = $request->validated();
+        $reinitialiserSolde = (bool) ($data['reinitialiser_solde'] ?? false);
+        unset($data['reinitialiser_solde']);
+
+        if ($reinitialiserSolde) {
+            $data['solde'] = $data['montant_total'];
+        }
+
+        $budget->update($data);
 
         return redirect()
             ->route('budgets.index')
-            ->with('success', 'Le budget a été modifié avec succès.');
+            ->with('success', $reinitialiserSolde
+                ? 'Le budget a été modifié et son solde a été réinitialisé.'
+                : 'Le budget a été modifié avec succès.');
     }
 
     public function destroy(Request $request, Budget $budget): RedirectResponse
