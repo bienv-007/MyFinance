@@ -68,4 +68,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(RevenuPrevision::class, 'id_utilisateur', 'id_utilisateur');
     }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'id_utilisateur', 'id_utilisateur');
+    }
 }

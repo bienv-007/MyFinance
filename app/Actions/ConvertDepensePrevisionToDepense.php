@@ -5,11 +5,14 @@ namespace App\Actions;
 use App\Models\Budget;
 use App\Models\Depense;
 use App\Models\DepensePrevision;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ConvertDepensePrevisionToDepense
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     public function execute(DepensePrevision $prevision): Depense
     {
         return DB::transaction(function () use ($prevision): Depense {
@@ -42,6 +45,12 @@ class ConvertDepensePrevisionToDepense
 
             $budget->decrement('solde', $prevision->montant_previsionnel);
             $prevision->delete();
+            $this->notifications->createOnce(
+                $prevision->id_utilisateur,
+                'depense_prevision_validee',
+                'Prévision de dépense validée',
+                sprintf('La prévision « %s » a été convertie en dépense réelle.', $prevision->description),
+            );
 
             return $depense->load('categorie');
         });

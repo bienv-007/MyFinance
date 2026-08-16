@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DepensePrevisionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RevenuPrevisionController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,9 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth:web')->group(function (): void {
+    Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
+    Route::resource('notifications', NotificationController::class)->only(['index', 'show', 'destroy']);
     Route::resource('budgets', BudgetController::class);
     Route::post('revenu-previsions/{revenu_prevision}/receive', [RevenuPrevisionController::class, 'markAsReceived'])
         ->name('revenu-previsions.receive');

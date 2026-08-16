@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BudgetController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\DepensePrevisionController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RevenuController;
 use App\Http\Controllers\Api\RevenuPrevisionController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,15 @@ Route::middleware('web')->group(function (): void {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
         Route::apiResource('categories', CategoryController::class);
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::apiResource('notifications', NotificationController::class)
+            ->only(['index', 'show', 'destroy'])
+            ->names([
+                'index' => 'api.notifications.index',
+                'show' => 'api.notifications.show',
+                'destroy' => 'api.notifications.destroy',
+            ]);
         Route::apiResource('budgets', BudgetController::class)->names([
             'index' => 'api.budgets.index',
             'store' => 'api.budgets.store',

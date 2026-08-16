@@ -61,9 +61,12 @@
                         <h2 class="text-xl font-semibold">@{{ title }}</h2>
                         </div>
                     </div>
-                    <button v-if="auth.user" @click="logout" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-700">
+                    <div v-if="auth.user" class="flex items-center gap-3">
+                    <a href="{{ route('notifications.index') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span v-if="notificationUnreadCount" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">@{{ notificationUnreadCount }}</span></a>
+                    <button @click="logout" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-700">
                         <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                     </button>
+                    </div>
                 </div>
             </header>
 
@@ -409,6 +412,7 @@ Vue.createApp({
             loadingTimer: null,
             busyAuth: false,
             authError: '',
+            notificationUnreadCount: 0,
             tabs: [
                 { key: 'categories', label: 'Catégories', icon: 'fa-solid fa-tags' },
                 { key: 'revenus', label: 'Revenus', icon: 'fa-solid fa-coins' },
@@ -495,7 +499,7 @@ Vue.createApp({
         },
         async loadAll() {
             await this.loadCategories();
-            await Promise.allSettled([this.loadRevenus(), this.loadRevenuPrevisions(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions()]);
+            await Promise.allSettled([this.loadRevenus(), this.loadRevenuPrevisions(), this.loadDepenses(), this.loadBudgets(), this.loadPrevisions(), this.loadNotifications()]);
         },
         async login() {
             this.authError = '';
@@ -565,6 +569,10 @@ Vue.createApp({
                 this.categories.items = [];
                 throw error;
             }
+        },
+        async loadNotifications() {
+            const { data } = await api.get('/notifications');
+            this.notificationUnreadCount = data?.unread_count ?? 0;
         },
         async saveCategory() {
             try {
