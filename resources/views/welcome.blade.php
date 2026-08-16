@@ -286,20 +286,20 @@
                         </article>
                     </div>
 
-                    <div v-if="activeTab==='budgets'" class="space-y-6">
+                    <div v-if="activeTab==='budgets'" class="mx-auto max-w-7xl space-y-6">
                         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                             <div>
                                 <p class="text-sm font-medium text-indigo-600">Planification financière</p>
                                 <h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Mes budgets</h3>
                                 <p class="mt-2 text-sm text-slate-500">Créez une enveloppe, suivez sa période et gardez le contrôle de vos objectifs.</p>
                             </div>
-                            <a href="{{ url('/budgets') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50">
+                            <a href="{{ url('/budgets') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 sm:w-auto">
                                 <i class="fa-solid fa-expand"></i>
                                 Vue détaillée
                             </a>
                         </div>
 
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-5">
                             <div class="rounded-3xl border border-indigo-100 bg-indigo-50 p-5"><div class="text-sm font-medium text-indigo-600">Total budgets</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.total }}</div></div>
                             <div class="rounded-3xl border border-emerald-100 bg-emerald-50 p-5"><div class="text-sm font-medium text-emerald-600">Budget actif</div><div class="mt-2 text-3xl font-bold text-slate-950">@{{ budgets.stats.actifs }}</div></div>
                             <div class="rounded-3xl border border-violet-100 bg-violet-50 p-5"><div class="text-sm font-medium text-violet-600">Budget initial</div><div class="mt-2 text-2xl font-bold text-slate-950">@{{ formatMoney(budgets.stats.montant_initial) }} <span class="text-sm font-semibold text-slate-500">FC</span></div></div>
@@ -308,7 +308,7 @@
                         </div>
 
                         <div class="grid gap-6 lg:grid-cols-3">
-                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                                 <div class="mb-5">
                                     <h4 class="text-lg font-semibold text-slate-950">@{{ budgetForm.id_budget ? 'Modifier le budget' : 'Nouveau budget' }}</h4>
                                     <p class="mt-1 text-sm text-slate-500">Les champs sont contrôlés avant enregistrement.</p>
@@ -324,7 +324,7 @@
                                         <input id="budget-montant" v-model="budgetForm.montant_total" type="number" min="0.01" step="0.01" placeholder="0,00" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                                         <p v-if="budgetErrors.montant_total" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.montant_total[0] }}</p>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-3">
+                                    <div class="grid gap-3 min-[420px]:grid-cols-2">
                                         <div>
                                             <label for="budget-debut" class="mb-1.5 block text-sm font-medium text-slate-700">Début</label>
                                             <input id="budget-debut" v-model="budgetForm.date_debut" type="date" class="w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
@@ -336,9 +336,9 @@
                                             <p v-if="budgetErrors.date_fin" class="mt-1 text-xs font-medium text-rose-600">@{{ budgetErrors.date_fin[0] }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex gap-3 pt-2">
-                                        <button type="submit" class="flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">@{{ budgetForm.id_budget ? 'Mettre à jour' : 'Créer le budget' }}</button>
-                                        <button v-if="budgetForm.id_budget" type="button" @click="resetBudgetForm" class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50">Annuler</button>
+                                    <div class="flex flex-col gap-3 pt-2 min-[420px]:flex-row">
+                                        <button type="submit" class="w-full flex-1 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700">@{{ budgetForm.id_budget ? 'Mettre à jour' : 'Créer le budget' }}</button>
+                                        <button v-if="budgetForm.id_budget" type="button" @click="resetBudgetForm" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 min-[420px]:w-auto">Annuler</button>
                                     </div>
                                     <label v-if="budgetForm.id_budget" class="flex cursor-pointer items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 text-sm text-slate-700">
                                         <input v-model="budgetForm.reinitialiser_solde" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
@@ -347,15 +347,15 @@
                                 </form>
                             </div>
 
-                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                            <div class="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-2">
                                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                                     <div>
                                         <h4 class="text-lg font-semibold text-slate-950">Budgets enregistrés</h4>
                                         <p class="mt-1 text-sm text-slate-500">@{{ budgets.stats.total }} budget(s) au total</p>
                                     </div>
-                                    <div class="flex gap-3">
+                                    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                                         <input v-model="budgets.search" @input="debouncedLoadBudgets" placeholder="Rechercher" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44">
-                                        <select v-model="budgets.sort" @change="loadBudgets" class="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                        <select v-model="budgets.sort" @change="loadBudgets" class="w-full rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-auto">
                                             <option value="date_debut">Date</option><option value="periode">Période</option><option value="montant_total">Montant</option>
                                         </select>
                                     </div>
@@ -366,7 +366,15 @@
                                     <p>Aucun budget ne correspond à votre recherche.</p>
                                 </div>
 
-                                <div v-else class="mt-5 overflow-x-auto">
+                                <div v-else class="mt-5 space-y-3 md:hidden">
+                                    <article v-for="item in budgets.items" :key="`mobile-${item.id_budget_historique || item.id_budget}`" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                        <div class="flex items-start justify-between gap-3"><div class="min-w-0"><p class="truncate font-semibold text-slate-900">@{{ item.periode }}</p><p class="mt-1 text-sm font-semibold text-slate-700">@{{ formatMoney(item.montant_total) }} FC</p></div><span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span></div>
+                                        <p class="mt-3 text-sm text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</p>
+                                        <div v-if="!item.est_historique" class="mt-4 flex gap-4 text-sm font-semibold"><button @click="editBudget(item)" class="text-indigo-600">Modifier</button><button @click="destroy('budgets', item.id_budget)" class="text-rose-600">Supprimer</button></div>
+                                    </article>
+                                </div>
+
+                                <div v-if="budgets.items.length" class="mt-5 hidden overflow-x-auto md:block">
                                     <table class="w-full min-w-[680px] text-sm">
                                         <thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Période</th><th class="py-3">Montant</th><th class="py-3">Dates</th><th class="py-3">Statut</th><th></th></tr></thead>
                                         <tbody>
