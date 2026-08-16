@@ -408,16 +408,16 @@ const api = axios.create({
     },
 });
 api.interceptors.request.use((config) => {
-    window.dispatchEvent(new Event('finance-loading-start'));
+    if (!config.silentLoading) window.dispatchEvent(new Event('finance-loading-start'));
     return config;
 });
 api.interceptors.response.use(
     (response) => {
-        window.dispatchEvent(new Event('finance-loading-end'));
+        if (!response.config.silentLoading) window.dispatchEvent(new Event('finance-loading-end'));
         return response;
     },
     (error) => {
-        window.dispatchEvent(new Event('finance-loading-end'));
+        if (!error.config?.silentLoading) window.dispatchEvent(new Event('finance-loading-end'));
         return Promise.reject(error);
     },
 );
@@ -601,7 +601,7 @@ Vue.createApp({
         },
         async loadNotifications() {
             try {
-                const { data } = await api.get('/notifications');
+                const { data } = await api.get('/notifications', { silentLoading: true });
                 const items = data?.data ?? [];
                 const fresh = items.filter((item) => !this.notifications.knownIds.includes(item.id_notification));
                 this.notifications.items = items;
