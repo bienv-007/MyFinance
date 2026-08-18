@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Categorie;
 use App\Models\Budget;
+use App\Models\Categorie;
 use App\Models\Depense;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -240,6 +240,45 @@ class DepensePrevisionManagementTest extends TestCase
                 'type' => "budget_utilise_{$threshold}",
             ]);
         }
+    }
+
+    public function test_scheduled_prevision_notifications_are_created_on_due_date_and_after_expiration(): void
+    {
+        $user = $this->createPrevisionUser();
+        $category = Categorie::create(['nom_categorie' => 'Factures']);
+        $dueExpense = $user->depensePrevisions()->create([
+            'id_categorie' => $category->id_categorie,
+            'montant_previsionnel' => 250,
+            'date_previsionnelle' => today(),
+            'description' => 'Facture internet',
+        ]);
+        $expiredExpense = $user->depensePrevisions()->create([
+            'id_categorie' => $category->id_categorie,
+            'montant_previsionnel' => 100,
+            'date_previsionnelle' => today()->subDay(),
+            'description' => 'Facture eau',
+        ]);
+        $dueIncome = $user->revenuPrevisions()->create([
+            'montant_previsionnel' => 1000,
+            'source_previsionnelle' => 'Salaire',
+            'date_previsionnelle' => today(),
+            'description' => 'Salaire mensuel',
+        ]);
+        $expiredIncome = $user->revenuPrevisions()->create([
+            'montant_previsionnel' => 200,
+            'source_previsionnelle' => 'Prime',
+            'date_previsionnelle' => today()->subDay(),
+            'description' => 'Prime annuelle',
+        ]);
+
+        $this->artisan('previsions:notify')->assertSuccessful();
+        $this->artisan('previsions:notify')->assertSuccessful();
+
+        $this->assertDatabaseCount('notifications', 4);
+        $this->assertDatabaseHas('notifications', ['id_utilisateur' => $user->id_utilisateur, 'type' => "depense_prevision_echeance_{$dueExpense->id_depense_prevision}"]);
+        $this->assertDatabaseHas('notifications', ['id_utilisateur' => $user->id_utilisateur, 'type' => "depense_prevision_expiree_{$expiredExpense->id_depense_prevision}"]);
+        $this->assertDatabaseHas('notifications', ['id_utilisateur' => $user->id_utilisateur, 'type' => "revenu_prevision_echeance_{$dueIncome->id_revenu_prevision}"]);
+        $this->assertDatabaseHas('notifications', ['id_utilisateur' => $user->id_utilisateur, 'type' => "revenu_prevision_expiree_{$expiredIncome->id_revenu_prevision}"]);
     }
 
     private function createBudget(User $user, float $solde, $dateDebut, $dateFin): Budget
