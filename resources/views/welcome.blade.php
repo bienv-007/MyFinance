@@ -106,7 +106,7 @@
                 </div>
 
                 <div v-else class="space-y-8">
-                    <div v-if="!['notifications', 'historiques'].includes(activeTab)" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div v-if="!['notifications', 'historiques', 'parametres'].includes(activeTab)" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Catégories</div><div class="mt-2 text-3xl font-semibold">@{{ categories.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Revenus</div><div class="mt-2 text-3xl font-semibold">@{{ revenus.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Dépenses</div><div class="mt-2 text-3xl font-semibold">@{{ depenses.items.length }}</div></div>
@@ -286,6 +286,38 @@
                         </article>
                     </div>
 
+                    <div v-if="activeTab==='parametres'" class="mx-auto max-w-2xl space-y-6">
+                        <div><p class="text-sm font-medium text-indigo-600">Configuration</p><h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Paramètres de notification</h3><p class="mt-2 text-sm text-slate-500">Configurez le comportement des alertes pour rester informé à votre manière.</p></div>
+
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+                            <div class="flex items-center justify-between gap-4">
+                                <div><p class="font-semibold text-slate-900">Son des notifications</p><p class="mt-0.5 text-sm text-slate-500">Jouer un son lors de l'arrivée d'une nouvelle notification.</p></div>
+                                <label class="relative inline-flex cursor-pointer items-center"><input type="checkbox" v-model="notificationPreferences.notif_son" class="peer sr-only"><div class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full"></div></label>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <div><p class="font-semibold text-slate-900">Vibration</p><p class="mt-0.5 text-sm text-slate-500">Faire vibrer l'appareil (mobile uniquement).</p></div>
+                                <label class="relative inline-flex cursor-pointer items-center"><input type="checkbox" v-model="notificationPreferences.notif_vibration" class="peer sr-only"><div class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full"></div></label>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <div><p class="font-semibold text-slate-900">Notifications du navigateur</p><p class="mt-0.5 text-sm text-slate-500">Afficher une notification native du système d'exploitation.</p></div>
+                                <label class="relative inline-flex cursor-pointer items-center"><input type="checkbox" v-model="notificationPreferences.notif_navigateur" @change="requestBrowserNotificationPermission()" class="peer sr-only"><div class="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-all peer-checked:bg-indigo-600 peer-checked:after:translate-x-full"></div></label>
+                            </div>
+                            <div v-if="browserPermission === 'denied'" class="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Les notifications sont bloquées par votre navigateur. Modifiez les paramètres du site dans votre navigateur.
+                            </div>
+                        </div>
+
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h4 class="font-semibold text-slate-900">Tester les notifications</h4>
+                            <p class="mt-1 text-sm text-slate-500">Cliquez pour prévisualiser le son et la vibration.</p>
+                            <button @click="testNotificationSound" class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 transition"><i class="fa-solid fa-volume-high"></i> Tester le son</button>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button @click="saveNotificationPreferences" class="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition"><i class="fa-solid fa-check"></i> Enregistrer</button>
+                        </div>
+                    </div>
+
                     <div v-if="activeTab==='budgets'" class="mx-auto max-w-7xl space-y-6">
                         <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                             <div>
@@ -453,6 +485,7 @@ Vue.createApp({
                 { key: 'historiques', label: 'Historique', icon: 'fa-solid fa-clock-rotate-left' },
                 { key: 'previsions', label: 'Prévisions de dépenses', icon: 'fa-solid fa-calendar-days' },
                 { key: 'notifications', label: 'Notifications', icon: 'fa-regular fa-bell' },
+                { key: 'parametres', label: 'Paramètres', icon: 'fa-solid fa-gear' },
             ],
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
@@ -472,6 +505,9 @@ Vue.createApp({
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0, montant_initial: 0, montant_depense: 0, montant_restant: 0 } },
             historiques: { items: [] },
             notifications: { items: [], knownIds: [], refreshTimer: null, initialized: false },
+            notificationPreferences: { notif_son: true, notif_vibration: true, notif_navigateur: false },
+            notifAudio: null,
+            browserPermission: 'default',
             previsions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, en_attente: 0, depassees: 0, prochaine_date: null, prochaine_categorie: null, categorie_frequente: null } },
             debouncedLoadCategories: null,
             debouncedLoadRevenus: null,
@@ -497,6 +533,8 @@ Vue.createApp({
         this.debouncedLoadPrevisions = debounce(() => this.loadPrevisions(), 250);
         this.bootstrap();
         this.notifications.refreshTimer = window.setInterval(() => this.loadNotifications(), 15000);
+        this.notifAudio = new Audio('/sounds/notification.wav');
+        if ('Notification' in window) this.browserPermission = Notification.permission;
     },
     beforeUnmount() { window.clearInterval(this.notifications.refreshTimer); },
     methods: {
@@ -524,6 +562,7 @@ Vue.createApp({
                 this.auth.user = data.data;
                 this.loadingProgress = 45;
                 await this.loadAll();
+                await this.loadNotificationPreferences();
                 this.loadingProgress = 100;
             } catch (error) {
                 if (error?.response?.status !== 401) {
@@ -551,6 +590,7 @@ Vue.createApp({
                 toastr.success(data.message);
                 try {
                     await this.loadAll();
+                    await this.loadNotificationPreferences();
                     this.loadingProgress = 100;
                 } catch (error) {
                     toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
@@ -576,6 +616,7 @@ Vue.createApp({
                 toastr.success(data.message);
                 try {
                     await this.loadAll();
+                    await this.loadNotificationPreferences();
                     this.loadingProgress = 100;
                 } catch (error) {
                     toastr.error(this.errorMessage(error, 'Impossible de charger les données.'));
@@ -615,7 +656,12 @@ Vue.createApp({
                 this.notifications.items = items;
                 this.notifications.knownIds = [...new Set([...this.notifications.knownIds, ...items.map((item) => item.id_notification)])];
                 this.notificationUnreadCount = data?.unread_count ?? 0;
-                if (this.notifications.initialized && fresh.length) fresh.reverse().forEach((item) => this.notify('info', item.titre));
+                if (this.notifications.initialized && fresh.length) {
+                    fresh.reverse().forEach((item) => {
+                        this.notify('info', item.titre);
+                        this.playNotifEffect(item);
+                    });
+                }
                 this.notifications.initialized = true;
             } catch (error) {
                 this.notifications.items = [];
@@ -654,6 +700,52 @@ Vue.createApp({
                 this.notificationUnreadCount = 0;
                 this.notify('success', 'Toutes les notifications ont été supprimées.');
             } catch (error) { this.notify('error', this.errorMessage(error, 'Impossible de supprimer les notifications.')); }
+        },
+        async loadNotificationPreferences() {
+            try {
+                const { data } = await api.get('/notification-preferences');
+                this.notificationPreferences = data.data;
+            } catch (_) {}
+        },
+        async saveNotificationPreferences() {
+            try {
+                await api.put('/notification-preferences', this.notificationPreferences);
+                this.notify('success', 'Préférences de notification enregistrées.');
+            } catch (error) {
+                this.notify('error', this.errorMessage(error, 'Impossible d\'enregistrer les préférences.'));
+            }
+        },
+        playNotifEffect(notification) {
+            if (this.notificationPreferences.notif_son && this.notifAudio) {
+                this.notifAudio.currentTime = 0;
+                this.notifAudio.play().catch(() => {});
+            }
+            if (this.notificationPreferences.notif_vibration && navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+            if (this.notificationPreferences.notif_navigateur && 'Notification' in window && Notification.permission === 'granted') {
+                new Notification(notification.titre, { body: notification.contenu, icon: '/favicon.ico' });
+            }
+        },
+        async requestBrowserNotificationPermission() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'granted') {
+                this.browserPermission = 'granted';
+                return;
+            }
+            const result = await Notification.requestPermission();
+            this.browserPermission = result;
+            if (result !== 'granted') {
+                this.notificationPreferences.notif_navigateur = false;
+                this.notify('info', 'Permission de notification refusée par le navigateur.');
+            }
+        },
+        testNotificationSound() {
+            if (this.notifAudio) {
+                this.notifAudio.currentTime = 0;
+                this.notifAudio.play().catch(() => {});
+            }
+            if (navigator.vibrate) navigator.vibrate(200);
         },
         async saveCategory() {
             try {

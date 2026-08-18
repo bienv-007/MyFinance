@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\DepensePrevisionController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\RevenuController;
 use App\Http\Controllers\Api\RevenuPrevisionController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,8 @@ Route::middleware('web')->group(function (): void {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
+        Route::get('notification-preferences', [NotificationPreferenceController::class, 'index']);
+        Route::put('notification-preferences', [NotificationPreferenceController::class, 'update']);
         Route::apiResource('categories', CategoryController::class);
         Route::get('budgets/historiques', [BudgetController::class, 'history'])->name('api.budgets.history');
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);

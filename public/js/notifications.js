@@ -21,6 +21,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const knownIds = new Set([...list.querySelectorAll('[data-notification-id]')].map((item) => item.dataset.notificationId));
     let firstRequest = true;
     let isRequestInFlight = false;
+    let preferences = { notif_son: true, notif_vibration: true, notif_navigateur: false };
+    const notifAudio = new Audio('/sounds/notification.wav');
+
+    const loadPreferences = async () => {
+        try {
+            const response = await fetch('/api/notification-preferences', {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (response.ok) {
+                const payload = await response.json();
+                if (payload.data) preferences = payload.data;
+            }
+        } catch (_) {}
+    };
+
+    const playNotifEffect = (notification) => {
+        if (preferences.notif_son) {
+            notifAudio.currentTime = 0;
+            notifAudio.play().catch(() => {});
+        }
+        if (preferences.notif_vibration && navigator.vibrate) {
+            navigator.vibrate(200);
+        }
+        if (preferences.notif_navigateur && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification(notification.titre, { body: notification.contenu, icon: '/favicon.ico' });
+        }
+    };
+
+    loadPreferences();
+    window.setInterval(loadPreferences, 60000);
 
     const updateCount = (count, hasNotifications) => {
         [headerCount, sidebarCount].filter(Boolean).forEach((badge) => {
@@ -75,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCount(Number(payload.unread_count || 0), notifications.length > 0);
 
             if (!firstRequest && freshNotifications.length && window.BudgetUI?.notify) {
-                freshNotifications.reverse().forEach((notification) => window.BudgetUI.notify('info', notification.titre));
+                freshNotifications.reverse().forEach((notification) => {
+                    window.BudgetUI.notify('info', notification.titre);
+                    playNotifEffect(notification);
+                });
             }
         } catch (_) {
             // La prochaine vérification relancera la synchronisation si le réseau est momentanément indisponible.

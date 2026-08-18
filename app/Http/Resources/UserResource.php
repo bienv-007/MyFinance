@@ -15,6 +15,11 @@ class UserResource extends JsonResource
             'prenom' => $this->prenom,
             'email' => $this->email,
             'date_creation' => $this->date_creation,
+            'notification_preferences' => [
+                'notif_son' => $this->notificationPreference?->notif_son ?? true,
+                'notif_vibration' => $this->notificationPreference?->notif_vibration ?? true,
+                'notif_navigateur' => $this->notificationPreference?->notif_navigateur ?? false,
+            ],
         ];
     }
 }
