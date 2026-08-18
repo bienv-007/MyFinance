@@ -22,6 +22,7 @@ class Budget extends Model
         'periode',
         'montant_total',
         'solde',
+        'est_archive',
         'date_debut',
         'date_fin',
     ];
@@ -29,6 +30,7 @@ class Budget extends Model
     protected $casts = [
         'montant_total' => 'decimal:2',
         'solde' => 'decimal:2',
+        'est_archive' => 'boolean',
         'date_debut' => 'date',
         'date_fin' => 'date',
     ];
@@ -50,6 +52,10 @@ class Budget extends Model
 
     public function getStatutAttribute(): string
     {
+        if ($this->est_archive) {
+            return 'Archivé';
+        }
+
         $today = today();
 
         if ($this->date_debut->isAfter($today)) {

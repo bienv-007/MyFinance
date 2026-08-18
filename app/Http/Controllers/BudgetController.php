@@ -23,7 +23,8 @@ class BudgetController extends Controller
         $allowedSorts = ['periode', 'date_debut', 'date_fin', 'montant_total'];
         $sort = in_array($sort, $allowedSorts, true) ? $sort : 'date_debut';
 
-        $budgetQuery = $user->budgets();
+        $this->cycles->archiveCompletedAndExpiredBudgets();
+        $budgetQuery = $user->budgets()->where('est_archive', false);
 
         if ($search !== '') {
             $budgetQuery->where(function ($query) use ($search): void {
@@ -42,6 +43,7 @@ class BudgetController extends Controller
 
         $today = today()->toDateString();
         $stats = $user->budgets()
+            ->where('est_archive', false)
             ->selectRaw('COUNT(*) as total_budgets')
             ->selectRaw('COALESCE(SUM(montant_total), 0) as montant_total')
             ->selectRaw(
@@ -65,7 +67,7 @@ class BudgetController extends Controller
 
     public function create(Request $request): View|RedirectResponse
     {
-        $budget = $request->user()->budgets()->first();
+        $budget = $request->user()->budgets()->where('est_archive', false)->first();
 
         if ($budget !== null) {
             return redirect()
@@ -140,7 +142,7 @@ class BudgetController extends Controller
 
     private function ensureUserHasNoBudget(Request $request): void
     {
-        if ($request->user()->budgets()->exists()) {
+        if ($request->user()->budgets()->where('est_archive', false)->exists()) {
             throw ValidationException::withMessages([
                 'budget' => 'Vous ne pouvez avoir qu’un seul budget. Modifiez le budget existant.',
             ]);

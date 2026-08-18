@@ -5,13 +5,17 @@ namespace App\Actions;
 use App\Models\Budget;
 use App\Models\Depense;
 use App\Models\DepensePrevision;
+use App\Services\BudgetCycleService;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ConvertDepensePrevisionToDepense
 {
-    public function __construct(private readonly NotificationService $notifications) {}
+    public function __construct(
+        private readonly NotificationService $notifications,
+        private readonly BudgetCycleService $cycles,
+    ) {}
 
     public function execute(DepensePrevision $prevision): Depense
     {
@@ -46,6 +50,7 @@ class ConvertDepensePrevisionToDepense
 
             $budget->decrement('solde', $prevision->montant_previsionnel);
             $this->notifications->notifyBudgetUsageThresholds($budget->refresh());
+            $this->cycles->archiveIfNecessary($budget);
             $prevision->delete();
             $this->notifications->createOnce(
                 $prevision->id_utilisateur,

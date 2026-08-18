@@ -20,7 +20,11 @@ class BudgetController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = Budget::query()->where('id_utilisateur', $request->user()->id_utilisateur);
+        $this->cycles->archiveCompletedAndExpiredBudgets();
+
+        $query = Budget::query()
+            ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->where('est_archive', false);
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function ($q) use ($search): void {
@@ -36,6 +40,7 @@ class BudgetController extends Controller
         $today = today()->toDateString();
         $stats = Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->where('est_archive', false)
             ->selectRaw('COUNT(*) as total_budgets')
             ->selectRaw('COALESCE(SUM(montant_total), 0) as montant_total')
             ->selectRaw(
@@ -45,6 +50,7 @@ class BudgetController extends Controller
             ->first();
         $budgets = Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->where('est_archive', false)
             ->get();
         $montantDepense = (float) Depense::query()->where('id_utilisateur', $request->user()->id_utilisateur)->whereNull('id_budget_historique')->sum('montant');
         $montantInitial = (float) ($stats?->montant_total ?? 0);
@@ -143,6 +149,7 @@ class BudgetController extends Controller
     {
         $hasBudget = Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->where('est_archive', false)
             ->exists();
 
         if ($hasBudget) {

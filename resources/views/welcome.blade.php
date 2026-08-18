@@ -37,7 +37,7 @@
                 </div>
             </div>
             <nav class="space-y-2">
-                <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
+                <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key; mobileSidebarOpen = false"
                     class="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition"
                     :class="activeTab === tab.key ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'">
                     <i :class="tab.icon"></i><span class="font-medium">@{{ tab.label }}</span>
@@ -62,7 +62,7 @@
                         </div>
                     </div>
                     <div v-if="auth.user" class="flex items-center gap-3">
-                    <button @click="activeTab = 'notifications'" class="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span v-if="notificationUnreadCount" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">@{{ notificationUnreadCount }}</span></button>
+                    <button @click="activeTab = 'notifications'; mobileSidebarOpen = false" class="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span v-if="notificationUnreadCount" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">@{{ notificationUnreadCount }}</span></button>
                     <button @click="logout" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-sm font-medium hover:bg-slate-700">
                         <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
                     </button>
@@ -106,7 +106,7 @@
                 </div>
 
                 <div v-else class="space-y-8">
-                    <div v-if="activeTab !== 'notifications'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div v-if="!['notifications', 'historiques'].includes(activeTab)" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Catégories</div><div class="mt-2 text-3xl font-semibold">@{{ categories.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Revenus</div><div class="mt-2 text-3xl font-semibold">@{{ revenus.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Dépenses</div><div class="mt-2 text-3xl font-semibold">@{{ depenses.items.length }}</div></div>
@@ -279,9 +279,9 @@
                             <div v-if="notifications.items.length" class="flex flex-col gap-3 sm:flex-row"><button @click="markAllNotificationsAsRead" class="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 sm:w-auto">Tout lire</button><button @click="deleteAllNotifications" class="w-full rounded-2xl bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-100 sm:w-auto">Tout supprimer</button></div>
                         </div>
                         <div v-if="!notifications.items.length" class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-indigo-50 text-2xl text-indigo-500"><i class="fa-regular fa-bell"></i></div><h4 class="mt-5 text-xl font-bold text-slate-950">Aucune notification</h4><p class="mt-2 text-sm text-slate-500">Les événements importants de votre gestion financière apparaîtront ici.</p></div>
-                        <article v-for="notification in notifications.items" :key="notification.id_notification" class="flex gap-4 rounded-3xl border p-5 shadow-sm" :class="notification.est_lue ? 'border-slate-200 bg-white' : 'border-indigo-100 bg-indigo-50/50'">
+                        <article v-for="notification in notifications.items" :key="notification.id_notification" class="flex gap-4 rounded-3xl border p-5 shadow-sm" :class="notification.est_lue ? 'border-slate-200 bg-white opacity-75' : 'border-indigo-300 bg-indigo-50 ring-1 ring-indigo-100'">
                             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" :class="notification.type.includes('depense') ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'"><i class="fa-solid" :class="notification.type.includes('depense') ? 'fa-receipt' : 'fa-circle-check'"></i></div>
-                            <div class="min-w-0 flex-1"><div class="flex flex-wrap items-start justify-between gap-2"><button @click="markNotificationAsRead(notification)" class="text-left font-bold text-slate-950 hover:text-indigo-600">@{{ notification.titre }}</button><time class="text-xs text-slate-400">@{{ formatDateTime(notification.date_notification) }}</time></div><p class="mt-1 text-sm leading-6 text-slate-600">@{{ notification.contenu }}</p><span v-if="!notification.est_lue" class="mt-3 inline-flex rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-700">Non lue</span></div>
+                            <div class="min-w-0 flex-1"><div class="flex flex-wrap items-start justify-between gap-2"><p class="font-bold text-slate-950">@{{ notification.titre }}</p><time class="text-xs text-slate-400">@{{ formatDateTime(notification.date_notification) }}</time></div><p class="mt-1 text-sm leading-6 text-slate-600">@{{ notification.contenu }}</p><div class="mt-3 flex flex-wrap items-center gap-3"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="notification.est_lue ? 'bg-slate-100 text-slate-500' : 'bg-indigo-100 text-indigo-700'">@{{ notification.est_lue ? 'Lue' : 'Non lue' }}</span><button v-if="!notification.est_lue" @click="markNotificationAsRead(notification)" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">Marquer comme lue</button></div></div>
                             <button @click="deleteNotification(notification)" class="text-slate-400 hover:text-rose-600" aria-label="Supprimer la notification"><i class="fa-solid fa-trash"></i></button>
                         </article>
                     </div>

@@ -7,15 +7,20 @@ use App\Http\Requests\DepenseRequest;
 use App\Http\Resources\DepenseResource;
 use App\Models\Budget;
 use App\Models\Depense;
+use App\Services\BudgetCycleService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DepenseController extends Controller
 {
-    public function __construct(private readonly NotificationService $notifications) {}
+    public function __construct(
+        private readonly NotificationService $notifications,
+        private readonly BudgetCycleService $cycles,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -75,6 +80,7 @@ class DepenseController extends Controller
         DB::transaction(function () use ($request, $depense, $data): void {
             if ($depense->id_budget_historique !== null) {
                 $depense->update($data);
+
                 return;
             }
             $this->creditBudget($request, [
@@ -95,6 +101,7 @@ class DepenseController extends Controller
         DB::transaction(function () use ($request, $depense): void {
             if ($depense->id_budget_historique !== null) {
                 $depense->delete();
+
                 return;
             }
             $this->creditBudget($request, [
@@ -141,6 +148,7 @@ class DepenseController extends Controller
             ->each(function (Budget $budget) use ($data): void {
                 $budget->decrement('solde', $data['montant']);
                 $this->notifications->notifyBudgetUsageThresholds($budget->refresh());
+                $this->cycles->archiveIfNecessary($budget);
             });
     }
 
@@ -150,10 +158,11 @@ class DepenseController extends Controller
             ->each(fn (Budget $budget) => $budget->increment('solde', $data['montant']));
     }
 
-    private function budgetsForDate(Request $request, string $date): \Illuminate\Support\Collection
+    private function budgetsForDate(Request $request, string $date): Collection
     {
         return Budget::query()
             ->where('id_utilisateur', $request->user()->id_utilisateur)
+            ->where('est_archive', false)
             ->whereDate('date_debut', '<=', $date)
             ->whereDate('date_fin', '>=', $date)
             ->get();

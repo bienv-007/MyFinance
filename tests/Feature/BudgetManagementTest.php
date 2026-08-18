@@ -167,6 +167,32 @@ class BudgetManagementTest extends TestCase
         ]);
     }
 
+    public function test_expired_or_depleted_budget_is_archived_and_can_be_replaced(): void
+    {
+        $user = $this->actingAsBudgetUser();
+        $expired = $user->budgets()->create([
+            'periode' => 'Juillet 2026',
+            'montant_total' => 500,
+            'solde' => 125,
+            'date_debut' => today()->subMonth(),
+            'date_fin' => today()->subDay(),
+        ]);
+
+        $this->artisan('budgets:archive-completed')->assertSuccessful();
+
+        $this->assertDatabaseHas('budgets', ['id_budget' => $expired->id_budget, 'est_archive' => true]);
+        $this->assertDatabaseHas('budget_historiques', ['id_budget' => $expired->id_budget, 'periode' => 'Juillet 2026']);
+
+        $this->post(route('budgets.store'), [
+            'periode' => 'Août 2026',
+            'montant_total' => 800,
+            'date_debut' => today()->toDateString(),
+            'date_fin' => today()->addMonth()->toDateString(),
+        ])->assertRedirect(route('budgets.index'));
+
+        $this->assertSame(1, $user->budgets()->where('est_archive', false)->count());
+    }
+
     private function actingAsBudgetUser(): User
     {
         $user = $this->createBudgetUser();
