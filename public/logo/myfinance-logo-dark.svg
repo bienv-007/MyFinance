@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 512" fill="none">
+  <!-- Wallet body -->
+  <rect x="56" y="148" width="300" height="212" rx="30" stroke="#ffffff" stroke-width="32" fill="none"/>
+  <!-- Wallet flap -->
+  <path d="M86 148V124C86 90 106 70 138 70H280C312 70 332 90 332 124V148" stroke="#ffffff" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Clasp -->
+  <circle cx="332" cy="254" r="20" fill="#4ade80"/>
+  <!-- Ascending trend line -->
+  <polyline points="116,320 170,248 224,280 300,200" stroke="#4ade80" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Wordmark -->
+  <text x="410" y="302" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="140" font-weight="700" fill="#ffffff" letter-spacing="-4">MyFinance</text>
+</svg>

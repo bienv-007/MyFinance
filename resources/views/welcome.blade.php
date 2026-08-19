@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Gestion des finances personnelles</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,7 +33,6 @@
                     <i class="fa-solid fa-wallet"></i>
                 </div>
                 <div>
-                    {{-- <div class="text-xs uppercase tracking-[0.3em] text-slate-400">Finance personnelles</div> --}}
                     <h1 class="font-semibold text-lg">MyFinance</h1>
                 </div>
             </div>
@@ -56,6 +56,7 @@
                         <button v-if="auth.user" @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden h-11 w-11 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700">
                             <i class="fa-solid fa-bars"></i>
                         </button>
+                        <img src="/logo/myfinance-icon.svg" alt="" class="h-9 w-9 hidden lg:block">
                         <div>
                         <p class="text-sm text-slate-500">Finances personnelles</p>
                         <h2 class="text-xl font-semibold">@{{ title }}</h2>
@@ -73,7 +74,8 @@
             <section class="px-4 sm:px-6 lg:px-8 py-8">
                 <div v-if="!auth.user" class="max-w-5xl mx-auto grid lg:grid-cols-2 gap-6">
                     <div class="rounded-[2rem] bg-slate-950 text-white p-8 shadow-2xl">
-                        <p class="text-sm text-slate-400">Module 1</p>
+                        <img src="/logo/myfinance-icon-dark.svg" alt="MyFinance" class="h-14 w-14 mb-4">
+                        {{-- <p class="text-sm text-slate-400">Module 1</p> --}}
                         <h3 class="mt-2 text-3xl font-semibold">Authentification</h3>
                         <p class="mt-4 text-slate-300">Connexion sécurisée par session pour accéder aux modules autorisés.</p>
                     </div>
@@ -730,7 +732,7 @@ Vue.createApp({
                 navigator.vibrate(200);
             }
             if (this.notificationPreferences.notif_navigateur && 'Notification' in window && Notification.permission === 'granted') {
-                new Notification(notification.titre, { body: notification.contenu, icon: '/favicon.ico' });
+                new Notification(notification.titre, { body: notification.contenu, icon: '/favicon.svg' });
             }
         },
         async requestBrowserNotificationPermission() {

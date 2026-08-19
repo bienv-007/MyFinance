@@ -42,12 +42,10 @@
         <aside x-cloak :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
             class="fixed inset-y-0 left-0 z-40 flex w-72 shrink-0 -translate-x-full flex-col bg-slate-950 px-6 py-7 text-slate-100 transition-transform duration-200 lg:static lg:min-h-screen lg:translate-x-0">
             <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
+                <img src="/logo/myfinance-icon-dark.svg" alt="MyFinance" class="h-11 w-11">
                 <div>
                     <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400">Personal finance</p>
-                    <p class="text-lg font-semibold tracking-tight">Finance Control</p>
+                    <p class="text-lg font-semibold tracking-tight">MyFinance</p>
                 </div>
             </div>
 

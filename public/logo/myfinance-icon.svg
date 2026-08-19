@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Wallet body -->
+  <rect x="72" y="148" width="368" height="260" rx="36" stroke="#1a1a1a" stroke-width="40" fill="none"/>
+  <!-- Wallet flap -->
+  <path d="M108 148V120C108 82 130 60 168 60H344C382 60 404 82 404 120V148" stroke="#1a1a1a" stroke-width="40" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Clasp -->
+  <circle cx="404" cy="278" r="24" fill="#16a34a"/>
+  <!-- Ascending trend line (M-shaped growth curve) -->
+  <polyline points="140,350 210,260 280,310 370,210" stroke="#16a34a" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
