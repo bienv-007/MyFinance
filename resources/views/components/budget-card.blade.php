@@ -27,17 +27,10 @@
 
     <div class="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
         <a href="{{ route('budgets.show', $budget) }}" class="text-sm font-semibold text-indigo-600 transition hover:text-indigo-800">Voir les détails</a>
-        <div class="flex items-center gap-1">
-            <a href="{{ route('budgets.edit', $budget) }}" aria-label="Modifier {{ $budget->periode }}" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600">
-                <i class="fa-solid fa-pen-to-square"></i>
-            </a>
-            <form action="{{ route('budgets.destroy', $budget) }}" method="POST" data-delete-budget="{{ $budget->periode }}">
-                @csrf
-                @method('DELETE')
-                <button type="submit" aria-label="Supprimer {{ $budget->periode }}" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </form>
-        </div>
+        <x-dropdown-menu>
+            <x-dropdown-item href="{{ route('budgets.edit', $budget) }}" icon="fa-solid fa-pen-to-square">Modifier</x-dropdown-item>
+            <div class="my-1 border-t border-slate-100"></div>
+            <x-dropdown-item href="{{ route('budgets.destroy', $budget) }}" method="DELETE" as="form" icon="fa-solid fa-trash-can" danger data-delete-budget="{{ $budget->periode }}">Supprimer</x-dropdown-item>
+        </x-dropdown-menu>
     </div>
 </article>

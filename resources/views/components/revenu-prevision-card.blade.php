@@ -13,16 +13,13 @@
     <p class="mt-3 line-clamp-2 text-sm leading-6 text-slate-500">{{ $prevision->description }}</p>
     <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
         <a href="{{ route('revenu-previsions.show', $prevision) }}" class="text-sm font-semibold text-indigo-600 transition hover:text-indigo-800">Voir le détail</a>
-        <div class="flex items-center gap-1">
+        <x-dropdown-menu>
+            <x-dropdown-item href="{{ route('revenu-previsions.edit', $prevision) }}" icon="fa-solid fa-pen-to-square">Modifier</x-dropdown-item>
             @if ($prevision->statut !== 'Réalisée')
-                <x-revenu-prevision-receive-button :prevision="$prevision" compact />
+                <x-dropdown-item href="{{ route('revenu-previsions.receive', $prevision) }}" method="POST" as="form" icon="fa-solid fa-hand-holding-dollar" data-receive-revenu-prevision="{{ $prevision->source_previsionnelle }}">Marquer reçu</x-dropdown-item>
             @endif
-            <a href="{{ route('revenu-previsions.edit', $prevision) }}" aria-label="Modifier la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></a>
-            <form action="{{ route('revenu-previsions.destroy', $prevision) }}" method="POST" data-delete-revenu-prevision="{{ $prevision->source_previsionnelle }}">
-                @csrf
-                @method('DELETE')
-                <button type="submit" aria-label="Supprimer la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button>
-            </form>
-        </div>
+            <div class="my-1 border-t border-slate-100"></div>
+            <x-dropdown-item href="{{ route('revenu-previsions.destroy', $prevision) }}" method="DELETE" as="form" icon="fa-solid fa-trash-can" danger data-delete-revenu-prevision="{{ $prevision->source_previsionnelle }}">Supprimer</x-dropdown-item>
+        </x-dropdown-menu>
     </div>
 </article>

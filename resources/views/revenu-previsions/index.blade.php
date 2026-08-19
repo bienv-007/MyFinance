@@ -100,7 +100,19 @@
                                     <td class="whitespace-nowrap px-6 py-5 text-slate-500">{{ $prevision->date_previsionnelle->format('d/m/Y') }}</td>
                                     <td class="max-w-xs truncate px-6 py-5 text-slate-500" title="{{ $prevision->description }}">{{ $prevision->description }}</td>
                                     <td class="whitespace-nowrap px-6 py-5"><x-revenu-prevision-status-badge :statut="$prevision->statut" /></td>
-                                    <td class="whitespace-nowrap px-6 py-5"><div class="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100">@if ($prevision->statut !== 'Réalisée')<x-revenu-prevision-receive-button :prevision="$prevision" compact />@endif<a href="{{ route('revenu-previsions.show', $prevision) }}" aria-label="Voir la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"><i class="fa-regular fa-eye"></i></a><a href="{{ route('revenu-previsions.edit', $prevision) }}" aria-label="Modifier la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></a><form action="{{ route('revenu-previsions.destroy', $prevision) }}" method="POST" data-delete-revenu-prevision="{{ $prevision->source_previsionnelle }}">@csrf @method('DELETE')<button type="submit" aria-label="Supprimer la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button></form></div></td>
+                                    <td class="whitespace-nowrap px-6 py-5">
+                                        <div class="flex justify-end opacity-70 transition group-hover:opacity-100">
+                                            <x-dropdown-menu>
+                                                <x-dropdown-item href="{{ route('revenu-previsions.show', $prevision) }}" icon="fa-regular fa-eye">Voir le détail</x-dropdown-item>
+                                                <x-dropdown-item href="{{ route('revenu-previsions.edit', $prevision) }}" icon="fa-solid fa-pen-to-square">Modifier</x-dropdown-item>
+                                                @if ($prevision->statut !== 'Réalisée')
+                                                    <x-dropdown-item href="{{ route('revenu-previsions.receive', $prevision) }}" method="POST" as="form" icon="fa-solid fa-hand-holding-dollar" data-receive-revenu-prevision="{{ $prevision->source_previsionnelle }}">Marquer reçu</x-dropdown-item>
+                                                @endif
+                                                <div class="my-1 border-t border-slate-100"></div>
+                                                <x-dropdown-item href="{{ route('revenu-previsions.destroy', $prevision) }}" method="DELETE" as="form" icon="fa-solid fa-trash-can" danger data-delete-revenu-prevision="{{ $prevision->source_previsionnelle }}">Supprimer</x-dropdown-item>
+                                            </x-dropdown-menu>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

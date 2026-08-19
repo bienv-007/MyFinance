@@ -104,7 +104,19 @@
                                     <td class="whitespace-nowrap px-6 py-5 text-slate-500">{{ $prevision->date_previsionnelle->format('d/m/Y') }}</td>
                                     <td class="max-w-xs truncate px-6 py-5 text-slate-500" title="{{ $prevision->description }}">{{ $prevision->description }}</td>
                                     <td class="whitespace-nowrap px-6 py-5"><x-prevision-status-badge :statut="$prevision->statut" /></td>
-                                    <td class="whitespace-nowrap px-6 py-5"><div class="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100"><x-prevision-validate-button :prevision="$prevision" compact /><a href="{{ route('depense-previsions.show', $prevision) }}" aria-label="Voir la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"><i class="fa-regular fa-eye"></i></a><a href="{{ route('depense-previsions.edit', $prevision) }}" aria-label="Modifier la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></a><form action="{{ route('depense-previsions.destroy', $prevision) }}" method="POST" data-delete-prevision="{{ $prevision->description }}">@csrf @method('DELETE')<button type="submit" aria-label="Supprimer la prévision" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button></form></div></td>
+                                    <td class="whitespace-nowrap px-6 py-5">
+                                        <div class="flex justify-end opacity-70 transition group-hover:opacity-100">
+                                            <x-dropdown-menu>
+                                                <x-dropdown-item href="{{ route('depense-previsions.show', $prevision) }}" icon="fa-regular fa-eye">Voir le détail</x-dropdown-item>
+                                                <x-dropdown-item href="{{ route('depense-previsions.edit', $prevision) }}" icon="fa-solid fa-pen-to-square">Modifier</x-dropdown-item>
+                                                @if ($prevision->statut !== 'Réalisée')
+                                                    <x-dropdown-item href="{{ route('depense-previsions.validate', $prevision) }}" method="POST" as="form" icon="fa-solid fa-check" danger data-validate-prevision="{{ $prevision->description }}">Valider</x-dropdown-item>
+                                                @endif
+                                                <div class="my-1 border-t border-slate-100"></div>
+                                                <x-dropdown-item href="{{ route('depense-previsions.destroy', $prevision) }}" method="DELETE" as="form" icon="fa-solid fa-trash-can" danger data-delete-prevision="{{ $prevision->description }}">Supprimer</x-dropdown-item>
+                                            </x-dropdown-menu>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

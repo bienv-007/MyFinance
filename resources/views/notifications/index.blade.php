@@ -26,7 +26,17 @@
                     <p class="mt-1 text-sm leading-6 text-slate-600">{{ $notification->contenu }}</p>
                     @unless ($notification->est_lue)<span class="mt-3 inline-flex rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-700">Non lue</span>@endunless
                 </div>
-                <form action="{{ route('notifications.destroy', $notification) }}" method="POST" data-delete-notification>@csrf @method('DELETE')<button aria-label="Supprimer la notification" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></form>
+                <x-dropdown-menu>
+                    <x-dropdown-item href="{{ route('notifications.show', $notification) }}" icon="fa-regular fa-eye">Voir la notification</x-dropdown-item>
+                    @unless ($notification->est_lue)
+                        <button type="button" onclick="markNotificationRead({{ $notification->id_notification }}, this)" class="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                            <i class="fa-solid fa-check w-4 text-center text-xs"></i>
+                            Marquer comme lue
+                        </button>
+                    @endunless
+                    <div class="my-1 border-t border-slate-100"></div>
+                    <x-dropdown-item href="{{ route('notifications.destroy', $notification) }}" method="DELETE" as="form" icon="fa-solid fa-trash-can" danger data-delete-notification="{{ $notification->titre }}">Supprimer</x-dropdown-item>
+                </x-dropdown-menu>
             </article>
         @empty
             <section class="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-indigo-50 text-2xl text-indigo-500"><i class="fa-regular fa-bell"></i></div><h2 class="mt-5 text-xl font-bold text-slate-950">Aucune notification</h2><p class="mt-2 text-sm text-slate-500">Les événements importants de votre gestion financière apparaîtront ici.</p></section>

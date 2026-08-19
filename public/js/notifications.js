@@ -8,6 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    window.markNotificationRead = async (id, button) => {
+        try {
+            const response = await fetch(`/api/notifications/${id}/read`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+            if (response.ok) {
+                const badge = button.closest('article')?.querySelector('.rounded-full.bg-indigo-100');
+                if (badge) badge.remove();
+                if (window.toastr) toastr.success('Notification marquée comme lue.');
+            }
+        } catch (_) {
+            if (window.toastr) toastr.error('Impossible de marquer la notification.');
+        }
+    };
+
     const center = document.querySelector('[data-notification-center]');
 
     if (!center || !window.fetch) {
