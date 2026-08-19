@@ -88,7 +88,12 @@
 
                         <form v-if="authMode==='login'" @submit.prevent="login" class="space-y-4">
                             <input v-model="loginForm.email" type="email" placeholder="Email" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
-                            <input v-model="loginForm.mot_de_passe" type="password" placeholder="Mot de passe" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <div class="relative">
+                                <input v-model="loginForm.mot_de_passe" :type="showLoginPassword ? 'text' : 'password'" placeholder="Mot de passe" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 pr-12 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                                <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                                    <i :class="showLoginPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                                </button>
+                            </div>
                             <button :disabled="busyAuth" class="w-full rounded-2xl bg-indigo-600 text-white py-3 font-medium disabled:opacity-60">Se connecter</button>
                         </form>
 
@@ -487,6 +492,7 @@ Vue.createApp({
                 { key: 'notifications', label: 'Notifications', icon: 'fa-regular fa-bell' },
                 { key: 'parametres', label: 'Paramètres', icon: 'fa-solid fa-gear' },
             ],
+            showLoginPassword: false,
             loginForm: { email: '', mot_de_passe: '' },
             registerForm: { nom: '', prenom: '', email: '', mot_de_passe: '', mot_de_passe_confirmation: '' },
             categoryForm: { id_categorie: null, nom_categorie: '' },
