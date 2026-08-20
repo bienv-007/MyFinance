@@ -168,6 +168,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>
 
                     <div v-if="activeTab==='revenus'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
                         <div>
