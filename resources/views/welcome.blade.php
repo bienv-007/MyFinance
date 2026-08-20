@@ -120,14 +120,20 @@
                 </div>
 
                 <div v-else class="space-y-8">
-                    <div v-if="!['notifications', 'historiques', 'parametres'].includes(activeTab)" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div v-if="!['notifications', 'historiques', 'parametres'].includes(activeTab)" class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Catégories</div><div class="mt-2 text-3xl font-semibold">@{{ categories.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Revenus</div><div class="mt-2 text-3xl font-semibold">@{{ revenus.items.length }}</div></div>
                         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm"><div class="text-sm text-slate-500">Dépenses</div><div class="mt-2 text-3xl font-semibold">@{{ depenses.items.length }}</div></div>
                         <div class="rounded-3xl bg-indigo-600 p-5 text-white shadow-lg shadow-indigo-600/20"><div class="text-sm text-indigo-100">Budgets</div><div class="mt-2 text-3xl font-semibold">@{{ budgets.stats.total }}</div><div class="mt-1 text-xs text-indigo-100">@{{ budgets.stats.actifs }} actif(s)</div></div>
                     </div>
 
-                    <div v-if="activeTab==='categories'" class="grid lg:grid-cols-3 gap-6">
+                    <div v-if="activeTab==='categories'" class="space-y-6">
+                        <div>
+                            <p class="text-sm font-medium text-indigo-600">Organisation</p>
+                            <h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Mes catégories</h3>
+                            <p class="mt-2 text-sm text-slate-500">Créez des catégories pour classer vos dépenses (ex: Alimentation, Transport, Loisirs). C'est essentiel pour savoir dans quoi vous dépensez le plus. Saisissez un nom et cliquez sur "Enregistrer".</p>
+                        </div>
+                        <div class="grid lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-1 rounded-3xl bg-white border border-slate-200 p-6">
                             <h3 class="font-semibold text-lg mb-4">Catégorie</h3>
                             <form @submit.prevent="saveCategory" class="space-y-4">
@@ -164,6 +170,11 @@
                     </div>
 
                     <div v-if="activeTab==='revenus'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
+                        <div>
+                            <p class="text-sm font-medium text-emerald-600">Entrées d'argent</p>
+                            <h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Mes revenus</h3>
+                            <p class="mt-2 text-sm text-slate-500">Enregistrez ici toutes vos sources de revenus (salaire, cadeaux, ventes...). Renseignez la source, le montant et la date pour garder une trace de vos entrées d'argent.</p>
+                        </div>
                         <div class="grid lg:grid-cols-3 gap-4">
                             <input v-model="revenuForm.source" placeholder="Source" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                             <input v-model="revenuForm.montant" type="number" step="0.01" placeholder="Montant" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
@@ -227,6 +238,11 @@
                     </div>
 
                     <div v-if="activeTab==='depenses'" class="rounded-3xl bg-white border border-slate-200 p-6 space-y-6">
+                        <div>
+                            <p class="text-sm font-medium text-rose-600">Sorties d'argent</p>
+                            <h3 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Mes dépenses</h3>
+                            <p class="mt-2 text-sm text-slate-500">Ajoutez chaque dépense en choisissant la catégorie, le montant et la date. Une description aide à retrouver facilement l'achat plus tard. Cliquez sur "Enregistrer" pour valider.</p>
+                        </div>
                         <div class="grid lg:grid-cols-4 gap-4">
                             <select v-model="depenseForm.id_categorie" class="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                                 <option value="">Catégorie</option>
@@ -301,7 +317,74 @@
                         <article v-for="historique in historiques.items" :key="historique.id_budget_historique" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                             <div class="flex flex-wrap items-start justify-between gap-3"><div><h4 class="text-lg font-semibold text-slate-950">@{{ historique.periode }}</h4><p class="mt-1 text-sm text-slate-500">Archivé le @{{ formatDate(historique.date_archivage) }}</p></div><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Terminé</span></div>
                             <div class="mt-5 grid gap-3 sm:grid-cols-3"><div class="rounded-2xl bg-indigo-50 p-4"><p class="text-xs text-indigo-600">Montant initial</p><p class="mt-1 font-bold">@{{ formatMoney(historique.montant_total) }} FC</p></div><div class="rounded-2xl bg-rose-50 p-4"><p class="text-xs text-rose-600">Dépensé</p><p class="mt-1 font-bold">@{{ formatMoney(historique.montant_depense) }} FC</p></div><div class="rounded-2xl bg-emerald-50 p-4"><p class="text-xs text-emerald-600">Solde final</p><p class="mt-1 font-bold">@{{ formatMoney(historique.solde_final) }} FC</p></div></div>
-                            <div class="mt-6 grid gap-5 lg:grid-cols-2"><div><h5 class="font-semibold text-slate-900">Dépenses (@{{ historique.depenses.length }})</h5><ul class="mt-2 space-y-2"><li v-for="depense in historique.depenses" :key="depense.id_depense" class="rounded-xl bg-rose-50 px-3 py-2 text-sm text-slate-700">@{{ depense.description || 'Dépense' }} — @{{ formatMoney(depense.montant) }} FC</li><li v-if="!historique.depenses.length" class="text-sm text-slate-500">Aucune dépense.</li></ul></div><div><h5 class="font-semibold text-slate-900">Revenus (@{{ historique.revenus.length }})</h5><ul class="mt-2 space-y-2"><li v-for="revenu in historique.revenus" :key="revenu.id_revenu" class="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-slate-700">@{{ revenu.source }} — @{{ formatMoney(revenu.montant) }} FC</li><li v-if="!historique.revenus.length" class="text-sm text-slate-500">Aucun revenu.</li></ul></div></div>
+                            <div class="mt-6 grid gap-5 lg:grid-cols-2">
+                                <div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h5 class="font-semibold text-slate-900">Dépenses (@{{ historique.depenses.length }})</h5>
+                                        <select v-if="historique.depenses.length > 1" v-model="historiques.sortDepenses" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                                            <option value="montant">Par montant</option>
+                                            <option value="frequence">Par article le plus acheté</option>
+                                            <option value="categorie">Par catégorie</option>
+                                        </select>
+                                    </div>
+                                    <ul class="mt-2 space-y-2">
+                                        <li v-for="depense in sortedDepenses(historique.depenses)" :key="depense.id_depense" class="rounded-xl bg-rose-50 px-3 py-2 text-sm text-slate-700">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <span v-if="depense.categorie" class="inline-block h-2 w-2 rounded-full bg-rose-400"></span>
+                                                <span class="font-medium">@{{ depense.description || 'Dépense' }}</span>
+                                                <span v-if="depense.categorie" class="text-xs text-rose-400">(@{{ depense.categorie.nom_categorie }})</span>
+                                            </span>
+                                            <span class="float-right font-semibold">@{{ formatMoney(depense.montant) }} FC</span>
+                                        </li>
+                                        <li v-if="!historique.depenses.length" class="text-sm text-slate-500">Aucune dépense.</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <h5 class="font-semibold text-slate-900">Revenus (@{{ historique.revenus.length }})</h5>
+                                        <select v-if="historique.revenus.length > 1" v-model="historiques.sortRevenus" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                                            <option value="montant">Par montant</option>
+                                            <option value="frequence">Par source la plus fréquente</option>
+                                        </select>
+                                    </div>
+                                    <ul class="mt-2 space-y-2">
+                                        <li v-for="revenu in sortedRevenus(historique.revenus)" :key="revenu.id_revenu" class="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-slate-700">
+                                            <span class="font-medium">@{{ revenu.source }}</span>
+                                            <span class="float-right font-semibold">@{{ formatMoney(revenu.montant) }} FC</span>
+                                        </li>
+                                        <li v-if="!historique.revenus.length" class="text-sm text-slate-500">Aucun revenu.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div v-if="historique.depenses.length" class="mt-6 border-t border-slate-100 pt-6">
+                                <h5 class="font-semibold text-slate-900">Statistiques de dépenses</h5>
+                                <div class="mt-4 space-y-3">
+                                    <div v-for="cat in depenseStats(historique.depenses)" :key="cat.nom" class="flex items-center gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center justify-between text-sm"><span class="font-medium text-slate-700">@{{ cat.nom }}</span><span class="text-xs text-slate-400">@{{ cat.pourcentage }}% — @{{ formatMoney(cat.total) }} FC</span></div>
+                                            <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                                <div class="h-full rounded-full transition-all duration-500" :class="cat.pourcentage > 50 ? 'bg-rose-500' : cat.pourcentage > 25 ? 'bg-amber-400' : 'bg-indigo-500'" :style="{ width: cat.pourcentage + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 rounded-2xl bg-indigo-50/60 border border-indigo-100 p-5">
+                                    <div class="flex items-start gap-3">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600"><i class="fa-solid fa-lightbulb text-sm"></i></div>
+                                        <div>
+                                            <h6 class="font-semibold text-indigo-900">Conseils d'optimisation</h6>
+                                            <ul class="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+                                                <li v-for="conseil in genereConseils(historique)" :key="conseil" class="flex items-start gap-2">
+                                                    <i class="fa-solid fa-check mt-1 text-[10px] text-indigo-400"></i>
+                                                    <span>@{{ conseil }}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </article>
                     </div>
 
@@ -556,7 +639,7 @@ Vue.createApp({
             revenuPrevisions: { items: [], search: '', sort: 'date_previsionnelle', direction: 'asc', stats: { total: 0, montant_total: 0, montant_mois: 0, montant_annee: 0, attendus: 0, expirees: 0, prochaine_date: null, prochaine_source: null, source_principale: null } },
             depenses: { items: [], search: '', sort: 'date_depense', direction: 'desc' },
             budgets: { items: [], search: '', sort: 'date_debut', direction: 'desc', stats: { total: 0, actifs: 0, montant_total: 0, montant_initial: 0, montant_depense: 0, montant_restant: 0 } },
-            historiques: { items: [] },
+            historiques: { items: [], sortDepenses: 'montant', sortRevenus: 'montant' },
             notifications: { items: [], knownIds: [], refreshTimer: null, initialized: false },
             notificationPreferences: { notif_son: true, notif_vibration: true, notif_navigateur: false },
             notifAudio: null,
@@ -685,6 +768,8 @@ Vue.createApp({
             }
         },
         async logout() {
+            const ok = await Swal.fire({ title: 'Déconnexion', text: 'Voulez-vous vraiment vous déconnecter ?', icon: 'question', showCancelButton: true, confirmButtonText: 'Oui, se déconnecter', cancelButtonText: 'Annuler' });
+            if (!ok.isConfirmed) return;
             try {
                 await api.post('/auth/logout');
                 this.auth.user = null;
@@ -1088,6 +1173,96 @@ Vue.createApp({
         budgetPercent(item) {
             if (!item.montant_total || item.montant_total <= 0) return 0;
             return Math.round(((item.montant_total - item.solde) / item.montant_total) * 100);
+        },
+        sortedDepenses(depenses) {
+            const list = [...depenses];
+            if (this.historiques.sortDepenses === 'montant') {
+                return list.sort((a, b) => b.montant - a.montant);
+            }
+            if (this.historiques.sortDepenses === 'frequence') {
+                const counts = {};
+                depenses.forEach(d => { const key = d.description || 'Dépense'; counts[key] = (counts[key] || 0) + 1; });
+                return list.sort((a, b) => (counts[b.description || 'Dépense'] || 0) - (counts[a.description || 'Dépense'] || 0));
+            }
+            if (this.historiques.sortDepenses === 'categorie') {
+                return list.sort((a, b) => (a.categorie?.nom_categorie || '').localeCompare(b.categorie?.nom_categorie || ''));
+            }
+            return list;
+        },
+        sortedRevenus(revenus) {
+            const list = [...revenus];
+            if (this.historiques.sortRevenus === 'montant') {
+                return list.sort((a, b) => b.montant - a.montant);
+            }
+            if (this.historiques.sortRevenus === 'frequence') {
+                const counts = {};
+                revenus.forEach(r => { counts[r.source] = (counts[r.source] || 0) + 1; });
+                return list.sort((a, b) => (counts[b.source] || 0) - (counts[a.source] || 0));
+            }
+            return list;
+        },
+        depenseStats(depenses) {
+            const groups = {};
+            depenses.forEach(d => {
+                const nom = d.categorie?.nom_categorie || 'Autre';
+                if (!groups[nom]) groups[nom] = { nom, total: 0 };
+                groups[nom].total += parseFloat(d.montant);
+            });
+            const totalGeneral = depenses.reduce((s, d) => s + parseFloat(d.montant), 0);
+            return Object.values(groups)
+                .map(g => ({ ...g, pourcentage: totalGeneral > 0 ? Math.round((g.total / totalGeneral) * 100) : 0 }))
+                .sort((a, b) => b.total - a.total);
+        },
+        genereConseils(historique) {
+            const conseils = [];
+            const stats = this.depenseStats(historique.depenses);
+            const totalDepense = parseFloat(historique.montant_depense);
+            const montantInitial = parseFloat(historique.montant_total);
+            const tauxConsommation = montantInitial > 0 ? (totalDepense / montantInitial) * 100 : 0;
+            const soldeRestant = parseFloat(historique.solde_final);
+
+            if (stats.length > 0) {
+                const top = stats[0];
+                if (top.pourcentage > 50) {
+                    conseils.push('Votre catégorie "' + top.nom + '" représente ' + top.pourcentage + '% de vos dépenses. Essayez de réduire ces dépenses pour mieux équilibrer votre budget.');
+                }
+                if (top.pourcentage > 30 && stats.length > 1) {
+                    const deuxieme = stats[1];
+                    const ecart = top.pourcentage - deuxieme.pourcentage;
+                    if (ecart > 20) {
+                        conseils.push('L\'écart entre "' + top.nom + '" (' + top.pourcentage + '%) et "' + deuxieme.nom + '" (' + deuxieme.pourcentage + '%) est important. Diversifiez vos dépenses pour éviter une dépendance excessive à un poste.');
+                    }
+                }
+            }
+
+            if (tauxConsommation >= 95) {
+                conseils.push('Vous avez consommé ' + Math.round(tauxConsommation) + '% de votre budget. Pensez à constituer une réserve de sécurité de 10 à 20% du montant initial.');
+            } else if (tauxConsommation >= 75) {
+                conseils.push('Vous avez utilisé ' + Math.round(tauxConsommation) + '% de votre budget. Restez vigilant sur les dépenses restantes pour clôturer ce cycle positivement.');
+            }
+
+            if (soldeRestant <= 0) {
+                conseils.push('Votre solde est épuisé. Essayez de fixer un plafond par catégorie au début de chaque cycle pour maîtriser vos dépenses.');
+            } else if (soldeRestant > 0 && soldeRestant < montantInitial * 0.1) {
+                const pct = Math.round((soldeRestant / montantInitial) * 100);
+                conseils.push('Il vous reste ' + pct + '% de votre budget. Félicitations pour votre maîtrise, continuez sur cette lancée !');
+            } else if (soldeRestant >= montantInitial * 0.2) {
+                const pct = Math.round((soldeRestant / montantInitial) * 100);
+                conseils.push('Vous avez économisé ' + pct + '% de votre budget. Envisagez d\'allouer cet excédent à un objectif d\'épargne ou d\'investissement.');
+            }
+
+            if (stats.length >= 3) {
+                const petites = stats.filter(s => s.pourcentage < 10);
+                if (petites.length >= 2) {
+                    conseils.push('Certaines catégories mineures représentent moins de 10% chacune. Regroupez ces petites dépenses si possible pour simplifier le suivi.');
+                }
+            }
+
+            if (conseils.length === 0) {
+                conseils.push('Votre gestion semble équilibrée. Maintenez vos habitudes et continuez à suivre régulièrement vos dépenses.');
+            }
+
+            return conseils;
         },
         notify(type, message) {
             if (window.toastr && typeof window.toastr[type] === 'function') {

@@ -87,7 +87,7 @@ class BudgetController extends Controller
     public function history(Request $request): JsonResponse
     {
         $historiques = BudgetHistorique::query()
-            ->with(['depenses', 'revenus'])
+            ->with(['depenses.categorie', 'revenus'])
             ->where('id_utilisateur', $request->user()->id_utilisateur)
             ->latest('date_archivage')
             ->get()
