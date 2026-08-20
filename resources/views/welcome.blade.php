@@ -434,30 +434,43 @@
 
                                 <div v-if="!budgets.items.length" class="rounded-2xl bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">
                                     <i class="fa-solid fa-chart-pie mb-3 text-2xl text-indigo-400"></i>
-                                    <p>Aucun budget ne correspond à votre recherche.</p>
+                                    <p>Aucun budget enregistré.</p>
                                 </div>
 
-                                <div v-else class="mt-5 space-y-3 md:hidden">
-                                    <article v-for="item in budgets.items" :key="`mobile-${item.id_budget_historique || item.id_budget}`" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                                        <div class="flex items-start justify-between gap-3"><div class="min-w-0"><p class="truncate font-semibold text-slate-900">@{{ item.periode }}</p><p class="mt-1 text-sm font-semibold text-slate-700">@{{ formatMoney(item.montant_total) }} FC</p></div><span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span></div>
-                                        <p class="mt-3 text-sm text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</p>
-                                        <div v-if="!item.est_historique" class="mt-4 flex items-center justify-between"><div></div><div class="relative inline-flex" @click.stop><button @click.stop="toggleDropdown('bm-'+item.id_budget)" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical text-sm"></i></button><div v-show="openDropdown === 'bm-'+item.id_budget" class="dropdown-panel"><button @click="editBudget(item); openDropdown = null" class="dropdown-item"><i class="fa-solid fa-pen-to-square w-4 text-center text-xs"></i> Modifier</button><div class="dropdown-separator"></div><button @click="destroy('budgets', item.id_budget); openDropdown = null" class="dropdown-item danger"><i class="fa-solid fa-trash-can w-4 text-center text-xs"></i> Supprimer</button></div></div></div></div>
+                                <div v-else class="mt-5 space-y-3">
+                                    <article v-for="item in budgets.items" :key="`budget-${item.id_budget_historique || item.id_budget}`" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-semibold text-slate-900">@{{ item.periode }}</p>
+                                                <p class="mt-1 text-sm text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</p>
+                                            </div>
+                                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-3">
+                                            <div class="rounded-xl bg-indigo-50 px-3 py-2"><p class="text-xs font-medium text-indigo-600">Montant</p><p class="mt-0.5 font-bold text-slate-900">@{{ formatMoney(item.montant_total) }} <span class="text-xs text-slate-400">FC</span></p></div>
+                                            <div class="rounded-xl bg-emerald-50 px-3 py-2"><p class="text-xs font-medium text-emerald-600">Solde</p><p class="mt-0.5 font-bold text-slate-900">@{{ formatMoney(item.solde) }} <span class="text-xs text-slate-400">FC</span></p></div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="flex items-center justify-between text-xs text-slate-400"><span>Consommé</span><span>@{{ budgetPercent(item) }}%</span></div>
+                                            <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                                                <div class="h-full rounded-full transition-all duration-500" :class="item.solde <= 0 ? 'bg-rose-500' : budgetPercent(item) > 75 ? 'bg-amber-400' : 'bg-indigo-500'" :style="{ width: Math.min(100, budgetPercent(item)) + '%' }"></div>
+                                            </div>
+                                        </div>
+                                        <div v-if="!item.est_historique" class="mt-3 flex items-center justify-between">
+                                            <div></div>
+                                            <div class="relative inline-flex" @click.stop>
+                                                <button @click.stop="toggleDropdown('bm-'+item.id_budget)" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical text-sm"></i></button>
+                                                <div v-show="openDropdown === 'bm-'+item.id_budget" class="dropdown-panel">
+                                                    <button @click="editBudget(item); openDropdown = null" class="dropdown-item"><i class="fa-solid fa-pen-to-square w-4 text-center text-xs"></i> Modifier</button>
+                                                    <div class="dropdown-separator"></div>
+                                                    <button @click="destroy('budgets', item.id_budget); openDropdown = null" class="dropdown-item danger"><i class="fa-solid fa-trash-can w-4 text-center text-xs"></i> Supprimer</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-else class="mt-3 flex justify-end">
+                                            <span class="text-xs font-semibold text-slate-400">Consultation</span>
+                                        </div>
                                     </article>
-                                </div>
-
-                                <div v-if="budgets.items.length" class="mt-5 hidden overflow-x-auto md:block">
-                                    <table class="w-full min-w-[680px] text-sm">
-                                        <thead class="border-b border-slate-100 text-left text-xs uppercase tracking-wider text-slate-400"><tr><th class="py-3">Période</th><th class="py-3">Montant</th><th class="py-3">Dates</th><th class="py-3">Statut</th><th></th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="item in budgets.items" :key="item.id_budget_historique || item.id_budget" class="border-b border-slate-100 last:border-0">
-                                                <td class="py-4 font-semibold text-slate-900">@{{ item.periode }}</td>
-                                                <td class="py-4 font-semibold text-slate-700">@{{ formatMoney(item.montant_total) }} <span class="text-xs text-slate-400">FC</span></td>
-                                                <td class="py-4 text-slate-500">@{{ formatDate(item.date_debut) }} → @{{ formatDate(item.date_fin) }}</td>
-                                                <td class="py-4"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClass(item.statut)">@{{ item.statut }}</span></td>
-                                                <td class="py-4 text-right"><template v-if="!item.est_historique"><div class="relative inline-flex" @click.stop><button @click.stop="toggleDropdown('bd-'+item.id_budget)" class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical text-sm"></i></button><div v-show="openDropdown === 'bd-'+item.id_budget" class="dropdown-panel"><button @click="editBudget(item); openDropdown = null" class="dropdown-item"><i class="fa-solid fa-pen-to-square w-4 text-center text-xs"></i> Modifier</button><div class="dropdown-separator"></div><button @click="destroy('budgets', item.id_budget); openDropdown = null" class="dropdown-item danger"><i class="fa-solid fa-trash-can w-4 text-center text-xs"></i> Supprimer</button></div></div></template><span v-else class="text-xs font-semibold text-slate-400">Consultation</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -1071,6 +1084,10 @@ Vue.createApp({
             if (status === 'En cours') return 'bg-emerald-50 text-emerald-700';
             if (status === 'À venir') return 'bg-amber-50 text-amber-700';
             return 'bg-slate-100 text-slate-600';
+        },
+        budgetPercent(item) {
+            if (!item.montant_total || item.montant_total <= 0) return 0;
+            return Math.round(((item.montant_total - item.solde) / item.montant_total) * 100);
         },
         notify(type, message) {
             if (window.toastr && typeof window.toastr[type] === 'function') {
